@@ -12,6 +12,9 @@
 
 ## 실행 방법
 
+배포본은 **https://ea-jamming-demo.vercel.app** 에서 바로 열립니다. 휴대폰·PC 모두 같은 주소이고,
+한 번 열면 앱으로 설치할 수 있습니다. 아래는 인터넷 없이 로컬 파일로 여는 방법입니다.
+
 1. `web/index.html`을 크롬으로 엽니다 (더블클릭, 인터넷 불필요).
 2. 시작 화면에서 모듈 카드를 고르거나 **시연 시작 — 통신부터**를 누릅니다.
 3. 각 페이지 상단의 **시연 단계** 버튼을 왼쪽부터 차례로 누르면 발표 장면이 그대로 재현됩니다.
@@ -69,6 +72,7 @@ python "도구/빌드.py"
 
 | 모듈 | 주소 |
 | --- | --- |
+| **배포본 (Vercel) — 발표에 쓰는 주소** | https://ea-jamming-demo.vercel.app |
 | 01 통신 음성 재밍 | https://claude.ai/artifact/6uoBfwWCLGsUpvtGbnhQLq |
 | 02 GNSS 재밍·스푸핑 | https://claude.ai/artifact/1m5DDF53C9qRFgrgAFejro |
 | 03 탐색 레이더(PPI) 재밍 | https://claude.ai/artifact/7aLMDrEKJRRB1rz1Dfu1ci |
@@ -124,6 +128,8 @@ python "도구/빌드.py"
    제안서 docx는 저장소에서 제외하고 요구사항을 `PRD.md`로 옮김. git 저장소 초기화.
 10. **PWA (2026-11-03)** — 매니페스트·서비스 워커·아이콘·설치 버튼 추가. 휴대폰·PC에 앱으로 설치되고,
     한 번 연 화면은 인터넷 없이도 열립니다. 캐시 버전은 빌드가 내용 해시로 찍습니다.
+11. **배포 (2026-11-03)** — GitHub 저장소를 Vercel에 연결했습니다 (Root Directory `web`, Preset `Other`,
+    환경변수 없음). 주소는 https://ea-jamming-demo.vercel.app 이고, `main`에 push하면 자동으로 다시 배포됩니다.
 
 ## 남은 일
 

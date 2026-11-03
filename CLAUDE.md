@@ -253,6 +253,19 @@ PWA의 고질적인 "옛 버전이 계속 보임"을 이 구조로 피한다.
 - 설치 버튼은 `beforeinstallprompt` 가 와야 보인다. iOS Safari 는 이 이벤트를 쏘지 않아, iOS 에서는 버튼을
   바로 띄우고 누르면 "공유 → 홈 화면에 추가" 안내를 보여준다.
 
+### 배포 (Vercel)
+
+| 항목 | 값 |
+| --- | --- |
+| 주소 | https://ea-jamming-demo.vercel.app |
+| 저장소 | `github.com/jungwoonlim17/ea-jamming-demo` (개인 계정 — Hobby 플랜은 개인 저장소만 받는다) |
+| Root Directory | **`web`** ← 비우면 저장소 루트가 올라가 빈 화면이 된다 |
+| Framework Preset | `Other` (빌드 과정 없음. HTML을 그대로 올린다) |
+| 환경변수 | 없음 (키를 쓰는 기능이 없다) |
+
+`main`에 push하면 Vercel이 자동으로 다시 배포한다. **고친 뒤에는 `python "도구/빌드.py"`를 먼저 돌리고 커밋한다** —
+서비스 워커 캐시 버전이 그대로면 이미 설치한 휴대폰에 옛 파일이 남는다.
+
 ### 빌드
 
 ```bash
