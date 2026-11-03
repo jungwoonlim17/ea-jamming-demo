@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자전 중 EA의 위험성 — 탐색 레이더(PPI) 재밍 시연</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+    --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+    --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.6}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:17px;font-weight:700}
+header .sub{font-size:13px;color:var(--dim)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg .lbl{font-size:13px;color:var(--dim);margin:0 4px 0 8px}
+.seg button,.seg a{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.seg [aria-pressed="true"]{background:var(--ok);color:var(--onsig);border-color:var(--ok);font-weight:700}
+.seg .soon{opacity:.55;cursor:not-allowed}
+.layout{display:flex;flex-wrap:wrap;gap:18px;padding:18px 24px 28px}
+aside,main{min-width:0}
+.params{flex:1 1 280px;max-width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.eqs{flex:1 1 300px;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+main{flex:999 1 420px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0;font-size:14px;font-weight:700;color:var(--dim)}
+.group{font-size:12px;font-weight:700;letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.group.sig{color:var(--sig)}.group.jam{color:var(--jam)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);gap:8px}
+.field .row output{color:var(--text);white-space:nowrap}
+.field .fixed{font-size:12px;color:var(--dim);line-height:1.5}
+input[type=range]{width:100%;accent-color:var(--sig);margin:0}
+.jamr input[type=range]{accent-color:var(--jam)}
+.pills{display:flex;gap:6px}
+.pills button{flex:1;height:34px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--sig);color:var(--onsig);border-color:var(--sig);font-weight:700}
+.jamr .pills button[aria-pressed="true"]{background:var(--jam);border-color:var(--jam)}
+.toggle{display:flex;gap:8px}
+.toggle button{flex:1;height:44px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--jam);color:var(--onsig);border-color:var(--jam);font-weight:700}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap;gap:6px}
+.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.status .big{font-size:34px;font-weight:700;line-height:1.1}
+.status .big.ok{color:var(--ok)}.status .big.warn{color:var(--jam)}.status .big.bad{color:var(--bad)}
+.status .desc{font-size:14px;color:var(--muted);max-width:52ch}
+.twocol{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+.svgfit{width:100%;height:auto;display:block;border-radius:8px}
+.svgfit text{font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.svgfit .mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+.eq{padding:12px;background:var(--card);border-radius:8px;font-size:13px;line-height:1.9;overflow-x:auto}
+.eq .k{color:var(--dim);font-size:12px}
+.eq .s{color:var(--sig)}.eq .j{color:var(--jam)}
+.eq .r{font-weight:500}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.res div{padding:10px 12px;background:var(--card);border-radius:8px;display:flex;flex-direction:column;gap:2px}
+.res span:first-child{font-size:11px;color:var(--dim)}
+.res span:last-child{font-size:19px}
+.lesson{margin:auto 0 0;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.6;color:var(--muted)}
+.lesson strong{color:var(--text)}
+footer{padding:14px 24px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.btn{height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.btn.primary{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>전자전 중 EA의 위험성</h1>
+    <div class="sub">탐색 레이더(PPI) 재밍 시연 · 레이더 방정식(양방향) 기반</div>
+  </div>
+  <div class="seg" role="group" aria-label="재머와 대상 선택">
+    <span class="lbl">재머</span>
+    <button id="mNoise" aria-pressed="true">잡음</button>
+    <button id="mDecep" aria-pressed="false">기만</button>
+    <span class="lbl">대상</span>
+    <a href="01-comms.html">통신</a>
+    <a href="02-gnss.html">GNSS</a>
+    <button aria-pressed="true">PPI</button>
+    <a href="04-sar.html">SAR</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="params" aria-label="파라미터">
+    <h2>파라미터</h2>
+    <div class="group sig">탐색 레이더 (피해 측, 위치 고정)</div>
+    <div class="field">
+      <div class="row"><span>대역 (주파수 f)</span><output id="oF">S 3 GHz</output></div>
+      <div class="pills" id="band">
+        <button data-f="1.3e9" aria-pressed="false">L 1.3 GHz</button>
+        <button data-f="3e9" aria-pressed="true">S 3 GHz</button>
+        <button data-f="9e9" aria-pressed="false">X 9 GHz</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="row"><label for="pt">첨두 출력 P<sub>t</sub></label><output id="oPt">1.0 MW</output></div>
+      <input id="pt" type="range" min="3" max="6.5" step="0.01" value="6">
+    </div>
+    <div class="field">
+      <div class="row"><label for="gt">안테나 이득 G<sub>t</sub> = G<sub>r</sub></label><output id="oGt">32 dBi</output></div>
+      <input id="gt" type="range" min="20" max="40" step="1" value="32">
+      <div class="fixed">부엽 레벨: 주엽 근처 −30 dB, 반대쪽(후엽) −45 dB (고정). 빔이 다른 방향을 볼 때 재머가 들어오는 통로</div>
+    </div>
+    <div class="field">
+      <div class="row"><label for="br">수신 대역폭 B<sub>r</sub></label><output id="oBr">1 MHz</output></div>
+      <input id="br" type="range" min="0.2" max="10" step="0.1" value="1">
+    </div>
+    <div class="field">
+      <div class="row"><label for="rcs">표적 RCS σ</label><output id="oRcs">5 m²</output></div>
+      <input id="rcs" type="range" min="-1" max="2" step="0.01" value="0.7">
+      <div class="fixed">순항미사일 0.1 · 전투기 1~5 · 수송기 50~100 m²</div>
+    </div>
+
+    <div class="group sig">항공기 (표적)</div>
+    <div class="field">
+      <div class="row"><label for="rt">레이더–항공기 거리 R</label><output id="oRt">180 km</output></div>
+      <input id="rt" type="range" min="5" max="200" step="1" value="180">
+      <div class="fixed">스코프에서 항공기를 끌어 옮기거나, 아래 "비행 시작"으로 레이더를 향해 접근시킵니다.</div>
+    </div>
+
+    <div class="group jam">재머 (공격 측)</div>
+    <div class="field jamr">
+      <div class="row"><span>재머 위치</span></div>
+      <div class="pills" id="jkind">
+        <button data-k="self" aria-pressed="true">자체보호 (항공기 탑재)</button>
+        <button data-k="standoff" aria-pressed="false">지원 재머 (별도 위치)</button>
+      </div>
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="pj">재머 출력 P<sub>j</sub></label><output id="oPj">10 W</output></div>
+      <input id="pj" type="range" min="-1" max="4" step="0.01" value="1">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="gj">재머 안테나 이득 G<sub>j</sub></label><output id="oGj">10 dBi</output></div>
+      <input id="gj" type="range" min="0" max="25" step="1" value="10">
+    </div>
+    <div class="field jamr" id="bjField">
+      <div class="row"><label for="bj">재밍 대역폭 B<sub>j</sub></label><output id="oBj">10 MHz</output></div>
+      <input id="bj" type="range" min="0.2" max="200" step="0.2" value="10">
+    </div>
+    <div class="field jamr" id="rjField" hidden>
+      <div class="row"><label for="rj">지원 재머–레이더 거리 R<sub>j</sub></label><output id="oRj">120 km</output></div>
+      <input id="rj" type="range" min="5" max="200" step="1" value="120">
+      <div class="fixed">스코프에서 지원 재머도 끌어 옮길 수 있습니다. 항공기와 방위가 다르면 재머는 부엽으로만 들어옵니다.</div>
+    </div>
+    <div class="field jamr" id="dField" hidden>
+      <div class="row"><span>기만 방식</span></div>
+      <div class="pills" id="dkind">
+        <button data-d="range" aria-pressed="true">거리 기만 (DRFM 지연)</button>
+        <button data-d="angle" aria-pressed="false">방위 기만 (부엽 거짓 표적)</button>
+      </div>
+      <div class="row" style="margin-top:8px"><label for="nf">거짓 표적 수 · 간격</label><output id="oNf">4개 · 8 km</output></div>
+      <input id="nf" type="range" min="1" max="8" step="1" value="4">
+      <input id="df" type="range" min="2" max="20" step="1" value="8" style="margin-top:6px">
+      <div class="fixed" id="dNote">DRFM이 레이더 펄스를 저장해 지연시켜 되보냅니다. 같은 방위에 진짜 뒤로 거짓 표적이 줄지어 생깁니다.</div>
+    </div>
+  </aside>
+
+  <main>
+    <section class="card">
+      <div class="head"><span>레이더 운용자 상태</span><span id="modeTag">잡음 재밍</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="toggle" style="flex:0 0 auto">
+          <button id="jOff" aria-pressed="true" style="padding:0 18px">재머 OFF</button>
+          <button id="jOn" aria-pressed="false" style="padding:0 18px">재머 ON</button>
+        </div>
+        <button class="btn primary" id="fly">비행 시작 (접근)</button>
+        <button class="btn" id="flyStop">정지</button>
+        <button class="btn" id="flyReset">180 km로 복귀</button>
+        <label class="chk" id="revealWrap" hidden><input type="checkbox" id="reveal"> 발표자용: 거짓 표적을 노란색으로 표시</label>
+      </div>
+      <div class="status">
+        <div class="big ok" id="stBig">탐지</div>
+        <div class="desc" id="stDesc">재머가 꺼져 있습니다. 항공기가 스코프에 정상적으로 표시됩니다.</div>
+      </div>
+    </section>
+
+    <div class="twocol">
+      <section class="card">
+        <div class="head"><span>PPI 스코프 — 레이더 중심, 반경 200 km (항공기·지원 재머를 끌어서 이동)</span><span class="mono" id="ppiTag"></span></div>
+        <svg class="svgfit" id="ppi" viewBox="0 0 420 420" role="img" aria-label="PPI 레이더 스코프" style="background:#040A08">
+          <defs>
+            <radialGradient id="glow"><stop offset="0" stop-color="#7FE3B6" stop-opacity=".9"></stop><stop offset="1" stop-color="#7FE3B6" stop-opacity="0"></stop></radialGradient>
+            <clipPath id="scopeClip"><circle cx="210" cy="210" r="190"></circle></clipPath>
+          </defs>
+          <circle cx="210" cy="210" r="190" fill="#07140F" stroke="#1E5A43" stroke-width="1.5"></circle>
+          <g id="speckle" clip-path="url(#scopeClip)"></g>
+          <g id="strobe" clip-path="url(#scopeClip)"></g>
+          <g stroke="#1E5A43" stroke-width="1" fill="none">
+            <circle cx="210" cy="210" r="142.5"></circle><circle cx="210" cy="210" r="95"></circle><circle cx="210" cy="210" r="47.5"></circle>
+            <line x1="20" y1="210" x2="400" y2="210"></line><line x1="210" y1="20" x2="210" y2="400"></line>
+          </g>
+          <text x="214" y="166" fill="#3F8A69" font-size="9" class="mono">50</text><text x="214" y="118" fill="#3F8A69" font-size="9" class="mono">100</text><text x="214" y="71" fill="#3F8A69" font-size="9" class="mono">150</text><text x="214" y="30" fill="#3F8A69" font-size="9" class="mono">200 km</text>
+          <circle id="btCircle" cx="210" cy="210" r="0" fill="none" stroke="#E6B84A" stroke-width="1.5" stroke-dasharray="6 5" stroke-opacity=".9"></circle>
+          <text id="btTxt" x="210" y="0" fill="#E6B84A" font-size="10" text-anchor="middle"></text>
+          <line id="sweep" x1="210" y1="210" x2="210" y2="20" stroke="#7FE3B6" stroke-width="2" stroke-opacity=".8"></line>
+          <g id="blips" clip-path="url(#scopeClip)"></g>
+          <g id="acHandle" style="cursor:grab"><circle r="16" fill="transparent"></circle><path d="M0 -8 L5 6 L0 3 L-5 6 Z" fill="none" stroke="#B4C2CF" stroke-width="1" stroke-dasharray="2 2" opacity=".8"></path><text y="-12" fill="#B4C2CF" font-size="9" text-anchor="middle" opacity=".8">항공기 (실제)</text></g>
+          <g id="joHandle" style="cursor:grab"><circle r="16" fill="transparent"></circle><circle r="5" fill="none" stroke="#E6B84A" stroke-width="1.5"></circle><text y="-10" fill="#E6B84A" font-size="9" text-anchor="middle">지원 재머</text></g>
+          <text x="20" y="408" fill="#3F8A69" font-size="10">회색 점선 = 실제 항공기 위치(발표자 참고) · 초록 = 레이더가 보는 것</text>
+        </svg>
+      </section>
+
+      <section class="card">
+        <div class="head"><span>A-스코프 — 항공기 방위의 수신 신호 (거리축)</span><span class="mono" id="aTag"></span></div>
+        <svg class="svgfit" id="ascope" viewBox="0 0 360 230" role="img" aria-label="A-스코프" style="background:#040A08">
+          <line x1="30" y1="190" x2="350" y2="190" stroke="#1E5A43"></line>
+          <line x1="30" y1="20" x2="30" y2="190" stroke="#1E5A43"></line>
+          <text x="350" y="206" fill="#3F8A69" font-size="9" text-anchor="end" class="mono">200 km</text>
+          <text x="30" y="206" fill="#3F8A69" font-size="9" class="mono">0</text>
+          <text x="22" y="26" fill="#3F8A69" font-size="9" text-anchor="end" class="mono">dBm</text>
+          <path id="aNoise" d="" fill="none" stroke="#3F8A69" stroke-width="1"></path>
+          <line id="aThr" x1="30" y1="0" x2="350" y2="0" stroke="#FF8A7A" stroke-width="1" stroke-dasharray="5 4"></line>
+          <text id="aThrTxt" x="350" y="0" fill="#FF8A7A" font-size="9" text-anchor="end">탐지 문턱</text>
+          <g id="aPulses"></g>
+          <g id="aGate"><rect x="0" y="22" width="14" height="168" fill="none" stroke="#7FE3B6" stroke-width="1.5" stroke-dasharray="3 2"></rect><text y="18" fill="#7FE3B6" font-size="9" text-anchor="middle" x="0">추적 게이트</text></g>
+          <text id="aMsg" x="190" y="222" fill="#B4C2CF" font-size="10" text-anchor="middle"></text>
+        </svg>
+        <div class="eq" style="font-size:12px" id="aNote"></div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="eqs" aria-label="수식">
+    <h2>수식</h2>
+    <div>
+      <div class="group sig" style="margin-bottom:8px">레이더 방정식 (양방향, R⁴)</div>
+      <div class="eq mono">
+        <div>S = P<sub>t</sub> G<sub>t</sub> G<sub>r</sub> λ² σ / ((4π)³ R⁴) · G<sub>p</sub></div>
+        <div class="k">G<sub>p</sub> = 펄스 적분·신호처리 이득 20 dB (고정)</div>
+        <div class="k" id="eqS"></div>
+        <div class="r">S = <span id="sOut">—</span></div>
+        <div class="k">N = kT·B<sub>r</sub>·NF(4 dB) = <span id="nOut">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group jam" style="margin-bottom:8px">재머 수신 전력 (단방향, R²)</div>
+      <div class="eq mono">
+        <div id="eqJf">J = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub>' λ² / ((4π)² R<sub>j</sub>²) · min(1, B<sub>r</sub>/B<sub>j</sub>)</div>
+        <div class="k" id="eqJ"></div>
+        <div class="r">J = <span id="jOut">—</span></div>
+        <div class="k" id="eqJnote"></div>
+      </div>
+    </div>
+    <div>
+      <div class="group" style="margin-bottom:8px;color:var(--dim)">결과</div>
+      <div class="res mono">
+        <div><span>S/(N+J)</span><span id="snrOut">—</span></div>
+        <div><span>탐지 문턱</span><span>13 dB</span></div>
+        <div><span>burn-through 거리</span><span id="btOut">—</span></div>
+        <div><span>J/S</span><span id="jsOut">—</span></div>
+      </div>
+    </div>
+    <p class="lesson" id="lesson"></p>
+  </aside>
+</div>
+
+<footer>
+  <span>모든 제원은 교육용 가상 값이며 실제 장비와 무관합니다. 자유공간 전파, 부엽 −30 dB, 탐지 문턱 13 dB 가정.</span>
+  <span>시연 버전 v0.2 · PPI 모듈</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const dB = x => 10*Math.log10(x);
+  const set = (id, attrs) => { const el=$(id); for(const k in attrs) el.setAttribute(k, attrs[k]); };
+  const SL = -30, THR = 13, NF = 4, BW = 3, GP = 20; // 부엽(dB), 탐지 문턱(dB), 잡음지수(dB), 빔폭(도), 펄스 적분 이득(dB)
+  const S = { f:3e9, pt:1e6, gt:32, br:1, rcs:5, rt:180, az:45, pj:10, gj:10, bj:10, jk:'self', rj:120, azj:110, nf:4, df:8, dk:'range', on:false, mode:'noise' };
+
+  function model(){
+    const lam = 3e8/S.f;
+    const Spow = dB(S.pt*1000) + 2*S.gt + 20*Math.log10(lam) + dB(S.rcs) - 30*Math.log10(4*Math.PI) - 40*Math.log10(S.rt*1000) + GP; // dBm (펄스 적분 이득 포함)
+    const N = -174 + dB(S.br*1e6) + NF;
+    const Rj = S.jk==='self' ? S.rt : S.rj;
+    const bw = S.mode==='decep' ? 0 : dB(Math.min(1, S.br/S.bj));
+    // 재머가 들어오는 안테나 이득: 빔이 재머 방위를 볼 때는 주엽, 아니면 부엽
+    const dAz = S.jk==='self' ? 0 : Math.abs(((S.azj - S.az + 540) % 360) - 180);
+    const inMain = dAz <= BW/2;
+    const Gin = inMain ? S.gt : S.gt + SL;
+    const J1 = R => dB(S.pj*1000) + S.gj + 20*Math.log10(lam) - 20*Math.log10(4*Math.PI) - 20*Math.log10(R*1000) + bw; // 안테나 이득 제외
+    const Jmain = J1(Rj) + S.gt;      // 재머 방위를 볼 때 (스트로브)
+    const Jtgt = J1(Rj) + Gin;        // 표적 방위를 볼 때 (탐지에 영향)
+    const Jon = S.on ? Jtgt : -Infinity;
+    const NJ = dB(Math.pow(10,N/10) + (S.on ? Math.pow(10,Jtgt/10) : 0));
+    const snr = Spow - NJ;
+    const js = S.on ? Jtgt - Spow : -Infinity;
+    // 방위 기만: 빔이 다른 방위를 볼 때 부엽으로 들어온 재머 신호가 잡음 문턱을 넘어야 거짓 표적이 된다
+    const Jsl = J1(Rj) + S.gt + SL;
+    const slMargin = Jsl - (N + THR);
+    // burn-through: S(R) = THR + (N+J). 자체보호는 J도 R에 따라 변함(R²), 지원은 고정
+    let Rbt;
+    const K = dB(S.pt*1000) + 2*S.gt + 20*Math.log10(lam) + dB(S.rcs) - 30*Math.log10(4*Math.PI) + GP; // S at 1 m
+    if(S.jk==='self'){
+      const Kj = dB(S.pj*1000) + S.gj + 20*Math.log10(lam) - 20*Math.log10(4*Math.PI) + bw + S.gt; // J at 1 m
+      // S/J = K - Kj - 20log R ≥ THR (J≫N 가정) → R ≤ 10^((K-Kj-THR)/20)
+      Rbt = Math.pow(10, (K - Kj - THR)/20)/1000;
+      const Rn = Math.pow(10, (K - N - THR)/40)/1000; // 잡음만의 최대 탐지거리
+      Rbt = Math.min(Rbt, Rn);
+    } else {
+      Rbt = Math.pow(10, (K - (S.on ? NJ : N) - THR)/40)/1000;
+    }
+    const Rmax = Math.pow(10, (K - N - THR)/40)/1000;
+    const detected = snr >= THR;
+    return {lam, Spow, N, Jmain, Jtgt, Jon, NJ, snr, js, Rbt, Rmax, detected, inMain, dAz, Rj, Jsl, slMargin};
+  }
+
+  const fmtW = w => w>=1e6 ? (w/1e6).toFixed(1)+' MW' : w>=1000 ? (w/1000).toFixed(0)+' kW' : w>=10 ? w.toFixed(0)+' W' : w>=1 ? w.toFixed(1)+' W' : (w*1000).toFixed(0)+' mW';
+  const fmtKm = k => k>=1000 ? '>999 km' : k>=100 ? k.toFixed(0)+' km' : k.toFixed(1)+' km';
+
+  // ---------- 화면 ----------
+  const C = {x:210, y:210}, PK = 190/200; // px per km
+  const pol = (r, az) => { const t = (az-90)*Math.PI/180; return {x: C.x + r*PK*Math.cos(t), y: C.y + r*PK*Math.sin(t)}; };
+  let sweepAz = 0, reveal = false, gateT = 0;
+
+  function render(){
+    const m = model(), decep = S.mode==='decep';
+    $('oF').textContent = (S.f<2e9?'L':S.f<5e9?'S':'X')+' '+(S.f/1e9).toFixed(1).replace('.0','')+' GHz';
+    $('oPt').textContent = fmtW(S.pt); $('oGt').textContent = S.gt+' dBi'; $('oBr').textContent = S.br.toFixed(1)+' MHz'; $('oRcs').textContent = S.rcs.toFixed(1)+' m²';
+    $('oRt').textContent = S.rt+' km'; $('rt').value = S.rt;
+    $('oPj').textContent = fmtW(S.pj); $('oGj').textContent = S.gj+' dBi'; $('oBj').textContent = S.bj.toFixed(1)+' MHz'; $('oRj').textContent = S.rj+' km'; $('rj').value = S.rj;
+    $('oNf').textContent = S.nf+'개 · '+S.df+' km';
+    $('bjField').hidden = decep; $('dField').hidden = !decep; $('rjField').hidden = S.jk!=='standoff'; $('revealWrap').hidden = !decep;
+    $('modeTag').textContent = decep ? (S.dk==='angle' ? '기만 재밍 (방위 기만 · 부엽 거짓 표적)' : '기만 재밍 (거리 기만 · RGPO)') : '잡음 재밍';
+    $('dNote').textContent = S.dk==='angle' ? '레이더 빔이 다른 방위를 볼 때 펄스 주기에 맞춰 신호를 보내면 부엽으로 들어가 그 방위에 거짓 표적이 생깁니다. 부엽(−30 dB)을 뚫어야 하므로 거리 기만보다 훨씬 센 출력이 필요합니다. (간격 슬라이더는 거리 퍼짐 범위)' : 'DRFM이 레이더 펄스를 저장해 지연시켜 되보냅니다. 같은 방위에 진짜 뒤로 거짓 표적이 줄지어 생깁니다.';
+    $('joHandle').style.display = S.jk==='standoff' ? '' : 'none';
+
+    // 수식
+    $('eqS').innerHTML = '= <span class="s">'+fmtW(S.pt)+'</span> · <span class="s">'+Math.pow(10,S.gt/10).toExponential(1)+'</span>² · '+m.lam.toFixed(3)+'² · <span class="s">'+S.rcs.toFixed(1)+'</span> / ((4π)³ · <span class="s">'+(S.rt*1000).toExponential(1)+'</span>⁴) · 100';
+    $('sOut').textContent = m.Spow.toFixed(1)+' dBm'; $('nOut').textContent = m.N.toFixed(1)+' dBm';
+    $('eqJf').innerHTML = decep ? 'J = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub>\' λ² / ((4π)² R<sub>j</sub>²)' : 'J = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub>\' λ² / ((4π)² R<sub>j</sub>²) · min(1, B<sub>r</sub>/B<sub>j</sub>)';
+    $('eqJ').innerHTML = '= <span class="j">'+fmtW(S.pj)+'</span> · <span class="j">'+Math.pow(10,S.gj/10).toFixed(0)+'</span> · '+(m.inMain||S.jk==='self' ? Math.pow(10,S.gt/10).toExponential(1)+' (주엽)' : Math.pow(10,(S.gt+SL)/10).toFixed(1)+' (부엽)')+' · '+m.lam.toFixed(3)+'² / ((4π)² · <span class="j">'+(m.Rj*1000).toExponential(1)+'</span>²)'+(decep?'':' · '+Math.min(1,S.br/S.bj).toFixed(2));
+    $('jOut').textContent = S.on ? m.Jtgt.toFixed(1)+' dBm' : 'OFF';
+    $('eqJnote').textContent = S.jk==='self' ? 'G\'r: 자체보호 재머는 항공기와 같은 방위라 빔이 항공기를 볼 때 주엽으로 들어옵니다.' : (m.inMain ? 'G\'r: 지원 재머가 항공기와 같은 방위에 있어 주엽으로 들어옵니다.' : 'G\'r: 지원 재머가 항공기와 '+m.dAz.toFixed(0)+'° 떨어져 있어 항공기 방위에서는 부엽(−30 dB)으로만 들어옵니다.');
+    $('snrOut').textContent = m.snr.toFixed(1)+' dB'; $('snrOut').style.color = m.detected ? 'var(--ok)' : 'var(--bad)';
+    $('btOut').textContent = S.on ? fmtKm(m.Rbt) : '— (최대 탐지 '+fmtKm(m.Rmax)+')';
+    $('jsOut').textContent = S.on ? (S.dk==='angle' && decep ? '부엽 J/N '+(m.slMargin+THR>=0?'+':'')+(m.slMargin+THR).toFixed(1)+' dB' : (m.js>=0?'+':'')+m.js.toFixed(1)+' dB') : '—';
+    $('lesson').innerHTML = decep
+      ? (S.dk==='angle'
+        ? '<strong>방위 기만은 부엽을 뚫어야 합니다.</strong> 빔이 다른 곳을 볼 때 재머 신호는 −30 dB 부엽으로 들어가므로, 같은 거리에서 거리 기만보다 약 1000배(30 dB) 센 출력이 있어야 스코프 여러 방위에 거짓 표적이 생깁니다. 그 대신 성공하면 운용자는 방위 자체를 잃습니다.'
+        : '<strong>기만은 레이더가 멀쩡히 "보고 있다"고 믿게 합니다.</strong> 거짓 표적은 진짜와 똑같이 깨끗한 점이라 운용자는 어느 것이 진짜인지 고를 수 없고, RGPO는 추적 게이트를 서서히 끌어내 추적을 깨뜨립니다.')
+      : '<strong>레이더는 왕복(R⁴), 재머는 편도(R²).</strong> 멀리서는 재머가 이기지만 항공기가 다가올수록 반사 신호가 R⁴로 빨리 커져 burn-through 거리 안에서는 표적이 다시 보입니다. 통신·GNSS보다 재머에게 훨씬 불리한 구조입니다.';
+
+    // 상태
+    const big=$('stBig'), desc=$('stDesc'); big.className='big';
+    if(!S.on){ if(S.rt > m.Rmax){ big.classList.add('warn'); big.textContent='탐지 범위 밖'; desc.textContent='항공기가 최대 탐지거리('+fmtKm(m.Rmax)+') 밖입니다. 비행 시작으로 접근시키세요.'; } else { big.classList.add('ok'); big.textContent='탐지'; desc.textContent='재머가 꺼져 있습니다. 항공기가 스코프에 정상적으로 표시됩니다.'; } }
+    else if(decep && S.dk==='angle'){
+      if(m.slMargin >= 0){ big.classList.add('bad'); big.textContent='거짓 표적 · 여러 방위'; desc.textContent='재머 신호가 부엽을 뚫고 들어와 재머 방위 양옆으로 거짓 표적이 생겼습니다. 뒤쪽 방위는 후엽(−45 dB)이라 더 센 출력이 있어야 채워집니다.'; }
+      else if(m.slMargin >= -10){ big.classList.add('warn'); big.textContent='방위 기만 약함'; desc.textContent='부엽으로 들어온 신호가 문턱 바로 아래라 거짓 표적이 희미합니다. 출력을 올리거나 거리를 줄이세요.'; }
+      else { big.classList.add('ok'); big.textContent='기만 실패 → 탐지'; desc.textContent='부엽 경유 신호가 문턱에 '+(-m.slMargin).toFixed(0)+' dB 모자랍니다. 거리 기만에 비해 약 30 dB 더 필요한 이유가 부엽입니다. 진짜 표적만 보입니다.'; }
+    }
+    else if(decep){
+      big.classList.add('bad'); big.textContent='거짓 표적 '+S.nf+'개'; desc.textContent='같은 방위에 진짜보다 먼 거리로 거짓 표적이 줄지어 보입니다. 운용자 화면에서는 전부 같은 점이며, 추적 게이트는 거짓 표적으로 끌려갑니다.';
+      if(m.js < 0){ big.className='big warn'; big.textContent='기만 약함'; desc.textContent='재머 신호가 진짜 반사보다 약해 거짓 표적이 희미합니다. 기만도 J/S가 0 dB를 넘어야 효과가 납니다.'; }
+    } else {
+      if(m.detected && S.rt <= m.Rbt){ big.classList.add('ok'); big.textContent='burn-through'; desc.textContent='항공기가 burn-through 거리('+fmtKm(m.Rbt)+') 안으로 들어와 반사 신호가 재밍을 뚫고 보입니다. 스트로브는 남아 있지만 표적이 그 안에 찍힙니다.'; }
+      else if(m.detected){ big.classList.add('warn'); big.textContent='탐지 (열화)'; desc.textContent='아직 S/(N+J)가 문턱 위라 보이지만 여유가 적습니다. 재머 출력을 올리면 사라집니다.'; }
+      else { big.classList.add('bad'); big.textContent='표적 상실'; desc.textContent='재머 방위에 스트로브가 서고 표적이 묻혔습니다. 항공기가 '+fmtKm(m.Rbt)+' 안으로 들어오면 다시 보입니다.'; }
+    }
+    drawPPI(m); drawA(m);
+  }
+
+  function drawPPI(m){
+    const decep = S.mode==='decep';
+    // 항공기 실제 위치 핸들
+    const ap = pol(S.rt, S.az); set('acHandle', {transform:'translate('+ap.x.toFixed(1)+','+ap.y.toFixed(1)+')'});
+    const jp = pol(S.rj, S.azj); set('joHandle', {transform:'translate('+jp.x.toFixed(1)+','+jp.y.toFixed(1)+')'});
+    // 스트로브: 재머 방위, 빔폭 너비, 세기 ∝ (Jmain − N)
+    const sg = $('strobe'); sg.innerHTML = '';
+    const azJ = S.jk==='self' ? S.az : S.azj;
+    if(S.on && !decep){
+      const lvl = Math.max(0, Math.min(1, (m.Jmain - m.N)/60));
+      const w = BW*1.6; const a1 = (azJ - w/2 - 90)*Math.PI/180, a2 = (azJ + w/2 - 90)*Math.PI/180;
+      const p1 = {x:C.x+190*Math.cos(a1), y:C.y+190*Math.sin(a1)}, p2 = {x:C.x+190*Math.cos(a2), y:C.y+190*Math.sin(a2)};
+      sg.innerHTML = '<path d="M'+C.x+' '+C.y+' L'+p1.x.toFixed(1)+' '+p1.y.toFixed(1)+' A190 190 0 0 1 '+p2.x.toFixed(1)+' '+p2.y.toFixed(1)+' Z" fill="#7FE3B6" fill-opacity="'+(0.15+0.75*lvl).toFixed(2)+'"></path>';
+      for(let i=0;i<Math.floor(lvl*120);i++){ const r = 10+Math.random()*180, a = (azJ + (Math.random()-0.5)*w - 90)*Math.PI/180; sg.innerHTML += '<circle cx="'+(C.x+r*Math.cos(a)).toFixed(1)+'" cy="'+(C.y+r*Math.sin(a)).toFixed(1)+'" r="1.2" fill="#B9F5DB" opacity="'+(0.3+0.6*Math.random()).toFixed(2)+'"></circle>'; }
+    }
+    // 부엽 잡음: 지원 재머가 세면 스코프 전체에 얇게
+    const sp = $('speckle'); sp.innerHTML = '';
+    if(S.on && !decep && S.jk==='standoff'){
+      const side = m.Jmain + SL - m.N; const lvl = Math.max(0, Math.min(1, side/40));
+      for(let i=0;i<Math.floor(lvl*400);i++){ const r = Math.random()*190, a = Math.random()*Math.PI*2; sp.innerHTML += '<circle cx="'+(C.x+r*Math.cos(a)).toFixed(1)+'" cy="'+(C.y+r*Math.sin(a)).toFixed(1)+'" r="1" fill="#7FE3B6" opacity="'+(0.15+0.5*Math.random()).toFixed(2)+'"></circle>'; }
+    }
+    // burn-through 원
+    const rbt = S.on && !decep ? Math.min(200, m.Rbt) : 0;
+    set('btCircle', {r:(rbt*PK).toFixed(1)}); set('btTxt', {y: rbt>0 ? Math.max(14, C.y - rbt*PK - 6) : 0});
+    $('btTxt').textContent = rbt>0 ? 'burn-through '+fmtKm(m.Rbt) : '';
+    // 블립
+    const bg = $('blips'); let h = '';
+    const blip = (r, az, op, col) => { const p = pol(r, az); return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="'+col+'" opacity="'+op+'"></circle><circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="9" fill="url(#glow)" opacity="'+(op*0.6).toFixed(2)+'"></circle>'; };
+    if(m.detected && S.rt <= 200) h += blip(S.rt, S.az, 1, '#B9F5DB');
+    if(S.on && decep && S.dk==='range' && m.js >= -6){
+      const op = m.js >= 0 ? 1 : 0.4;
+      for(let k=1;k<=S.nf;k++){ const r = S.rt + k*S.df; if(r<=200) h += blip(r, S.az, op, reveal ? '#E6B84A' : '#B9F5DB'); }
+    }
+    if(S.on && decep && S.dk==='angle'){
+      // 부엽 레벨은 주엽에서 멀어질수록 낮아진다: 근접 부엽 −30 dB → 후엽 −45 dB
+      const azJ = S.jk==='self' ? S.az : S.azj;
+      const slAt = d => SL - Math.max(0, Math.abs(d) - 30)/150*15;
+      for(let k=1;k<=S.nf;k++){
+        [1,-1].forEach(sgn => {
+          const d = sgn*k*(180/(S.nf+1)); // 재머 방위 양옆으로 고르게 배치
+          const margin = m.Jsl - SL + slAt(d) - (m.N + THR);
+          if(margin < -10) return;
+          const op = margin >= 0 ? 1 : 0.35;
+          const r = S.rt + ((k*7 + (sgn>0?3:0)) % 11 - 5)/5*S.df;
+          if(r>5 && r<=200) h += blip(r, (azJ + d + 360) % 360, op, reveal ? '#E6B84A' : '#B9F5DB');
+        });
+      }
+    }
+    bg.innerHTML = h;
+    $('ppiTag').textContent = '항공기 R = '+S.rt+' km, 방위 '+S.az.toFixed(0)+'°';
+  }
+
+  function drawA(m){
+    const decep = S.mode==='decep';
+    const X = r => 30 + r/200*320, Y = p => 190 - Math.max(0, Math.min(1, (p+130)/100))*168; // −130~−30 dBm
+    // 잡음 바닥 + (잡음 재밍 시) 재머
+    const floor = S.on && !decep ? m.NJ : m.N;
+    let d=''; for(let i=0;i<=64;i++){ const x = 30 + i*5, y = Y(floor + (Math.random()-0.5)*6); d += (i?'L':'M')+x+' '+y.toFixed(1)+' '; }
+    $('aNoise').setAttribute('d', d);
+    set('aThr', {y1:Y(m.N+THR), y2:Y(m.N+THR)}); set('aThrTxt', {y:Y(m.N+THR)-3});
+    // 펄스
+    const pg = $('aPulses'); let h='';
+    const pulse = (r, p, col, op) => { const x = X(r), y = Y(p); return '<path d="M'+(x-5)+' 190 L'+x+' '+y.toFixed(1)+' L'+(x+5)+' 190" fill="'+col+'" fill-opacity="'+(op*0.5)+'" stroke="'+col+'" stroke-width="1.5" opacity="'+op+'"></path>'; };
+    if(S.rt<=200) h += pulse(S.rt, m.Spow, '#B9F5DB', m.detected ? 1 : 0.35);
+    let gateR = S.rt;
+    if(S.on && decep && S.dk==='range' && m.js >= -6){
+      const op = m.js >= 0 ? 1 : 0.4;
+      for(let k=1;k<=S.nf;k++){ const r = S.rt + k*S.df; if(r<=200) h += pulse(r, m.Jtgt, reveal ? '#E6B84A' : '#B9F5DB', op); }
+      // RGPO: 게이트가 진짜에서 첫 거짓 표적으로 서서히 끌려감
+      if(m.js >= 0){ gateT = Math.min(1, gateT + 0.004); gateR = S.rt + gateT*S.df; }
+    } else gateT = Math.max(0, gateT - 0.02);
+    pg.innerHTML = h;
+    const gx = X(gateR); set('aGate', {transform:'translate('+(gx-7).toFixed(1)+',0)'});
+    $('aGate').style.opacity = m.detected || (S.on && decep) ? 1 : 0.25;
+    $('aGate').querySelector('text').setAttribute('x', 7);
+    $('aTag').textContent = S.on && !decep ? '잡음 바닥 '+m.NJ.toFixed(0)+' dBm (재머 포함)' : '잡음 바닥 '+m.N.toFixed(0)+' dBm';
+    $('aMsg').textContent = S.on && decep && m.js>=0 ? (gateT>=1 ? '추적 게이트가 거짓 표적에 고정됨 — 진짜 표적 추적 이탈' : '거리 게이트 끌기(RGPO) 진행 중… '+(gateT*100).toFixed(0)+'%') : (S.on && !decep && !m.detected ? '반사 펄스가 재밍 잡음에 묻힘' : '');
+    $('aNote').innerHTML = decep ? '<span class="k">기만 모드:</span> 거짓 표적은 진짜 반사보다 세게 만들 수 있어(J/S > 0) 게이트가 센 쪽으로 끌려갑니다. 끌려간 뒤 재머가 꺼지면 레이더는 아무것도 없는 곳을 추적하게 됩니다.' : '<span class="k">잡음 모드:</span> 재머가 올린 잡음 바닥 위로 반사 펄스가 솟아야 탐지됩니다. 거리가 줄면 펄스가 R⁴로 빨리 커져 바닥을 뚫고 올라옵니다.';
+  }
+
+  // ---------- 애니메이션: 스윕 + 비행 ----------
+  let flying = false;
+  function animate(){
+    sweepAz = (sweepAz + 1.5) % 360;
+    const t = (sweepAz-90)*Math.PI/180; set('sweep', {x2:(C.x+190*Math.cos(t)).toFixed(1), y2:(C.y+190*Math.sin(t)).toFixed(1)});
+    if(flying){ S.rt = Math.max(5, S.rt - 0.25); if(S.rt<=5) flying=false; render(); }
+    else if(S.mode==='decep' && S.on) drawA(model());
+    requestAnimationFrame(animate);
+  }
+
+  // ---------- 이벤트 ----------
+  const bind = (id, fn) => $(id).addEventListener('input', e => { fn(e.target.value); render(); });
+  bind('pt', v => S.pt = Math.pow(10, +v)); bind('gt', v => S.gt = +v); bind('br', v => S.br = +v); bind('rcs', v => S.rcs = Math.pow(10, +v));
+  bind('rt', v => S.rt = +v); bind('pj', v => S.pj = Math.pow(10, +v)); bind('gj', v => S.gj = +v); bind('bj', v => S.bj = +v); bind('rj', v => S.rj = +v);
+  bind('nf', v => S.nf = +v); bind('df', v => S.df = +v);
+  const pills = (gid, attr, fn) => { const bs = $(gid).querySelectorAll('button'); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); fn(b.dataset[attr]); render(); })); };
+  pills('band','f', v => S.f = +v); pills('jkind','k', v => S.jk = v); pills('dkind','d', v => S.dk = v);
+  $('jOff').addEventListener('click', () => { S.on=false; $('jOff').setAttribute('aria-pressed','true'); $('jOn').setAttribute('aria-pressed','false'); render(); });
+  $('jOn').addEventListener('click',  () => { S.on=true;  $('jOn').setAttribute('aria-pressed','true');  $('jOff').setAttribute('aria-pressed','false'); render(); });
+  $('mNoise').addEventListener('click', () => { S.mode='noise'; $('mNoise').setAttribute('aria-pressed','true'); $('mDecep').setAttribute('aria-pressed','false'); render(); });
+  $('mDecep').addEventListener('click', () => { S.mode='decep'; $('mDecep').setAttribute('aria-pressed','true'); $('mNoise').setAttribute('aria-pressed','false'); render(); });
+  $('fly').addEventListener('click', () => { flying = true; });
+  $('flyStop').addEventListener('click', () => { flying = false; });
+  $('flyReset').addEventListener('click', () => { flying = false; S.rt = 180; render(); });
+  $('reveal').addEventListener('change', e => { reveal = e.target.checked; render(); });
+  // 드래그: 항공기 / 지원 재머
+  (function(){
+    const svg = $('ppi');
+    const toSvg = e => { const p = svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    const drag = (id, fn) => { const h = $(id); let on=false; h.addEventListener('pointerdown', e => { on=true; h.setPointerCapture(e.pointerId); e.preventDefault(); }); h.addEventListener('pointermove', e => { if(!on) return; const p = toSvg(e), dx = p.x-C.x, dy = p.y-C.y; const r = Math.max(5, Math.min(200, Math.round(Math.hypot(dx,dy)/PK))); const az = ((Math.atan2(dy,dx)*180/Math.PI + 90) + 360) % 360; fn(r, az); render(); }); const end = () => { on=false; }; h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end); };
+    drag('acHandle', (r,az) => { flying=false; S.rt = r; S.az = az; });
+    drag('joHandle', (r,az) => { S.rj = r; S.azj = az; });
+  })();
+
+  render(); animate();
+})();
+</script>
+<!-- 공통블록:시작 (도구/공통블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+/* 수동 테마 전환용. 헤드의 light 미디어 규칙과 같은 명시도라 문서 순서로 이긴다 */
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+  color-scheme:light;
+}
+.ea-pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ea-pbar .ea-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-right:2px}
+.ea-step{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ea-step[aria-current="true"]{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.ea-btn{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.ea-btn:hover,.ea-step:hover{border-color:var(--ok)}
+.ea-grow{flex:1 1 auto}
+.ea-desc{flex:1 0 100%;font-size:12px;line-height:1.55;color:var(--dim);padding-top:1px}
+.ea-desc b{color:var(--text);font-weight:500}
+.ea-help{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;padding:20px;display:none;align-items:center;justify-content:center}
+.ea-help[open]{display:flex}
+.ea-help .ea-box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:22px 24px;max-width:470px;width:100%;max-height:80vh;overflow:auto}
+.ea-help h3{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--text)}
+.ea-help p{margin:0 0 14px;font-size:12px;color:var(--dim)}
+.ea-help dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.ea-help dt{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--jam);white-space:nowrap}
+.ea-help dd{margin:0;color:var(--muted)}
+.ea-help .ea-close{margin-top:18px;width:100%;height:38px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:720px){.ea-pbar{padding:10px 16px}}
+@media print{.ea-pbar,.ea-help{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MOD = "03";
+  var HOME = "index.html";          // 빈 문자열이면 시작 화면 버튼 없음
+  var STEPS = [{"t":"0 · 정상 탐지","d":"S 3 GHz · 1 MW · 32 dBi · RCS 5 m². 180 km에서 S/N 약 28 dB. 최대 탐지거리는 400 km대입니다.","a":[["k","#band",1],["w","pt",1000000],["r","gt",32],["r","br",1],["w","rcs",5],["c","flyReset"],["c","mNoise"],["x","reveal",false],["c","jOff"]]},{"t":"1 · 자체보호 재머 10 W","d":"1 MW 레이더가 <b>10 W 재머 하나</b>에 표적을 잃습니다. 재머 방위에 스트로브가 서는 것을 보여줍니다.","a":[["k","#jkind",0],["w","pj",10],["r","gj",10],["r","bj",10],["c","jOn"]]},{"t":"2 · 접근 → burn-through","d":"반사는 왕복 R⁴, 재밍은 편도 R². 가까워질수록 반사가 훨씬 빨리 커져 <b>약 18 km 원 안</b>에서 표적이 되살아납니다. 통신·GNSS와 정반대입니다.","a":[["c","fly"]]},{"t":"3 · 거리 기만 (RGPO)","d":"180 km · 약 0.5 W. 같은 방위에 거짓 표적이 줄지어 서고 추적 게이트가 서서히 끌려갑니다. 운용자 화면에서는 전부 똑같은 점입니다.","a":[["c","flyReset"],["c","mDecep"],["k","#dkind",0],["w","pj",0.5],["r","nf",4],["r","df",8],["x","reveal",false],["c","jOn"]]},{"t":"4 · 방위 기만 — 같은 출력, 실패","d":"출력도 거리도 그대로 두고 방식만 바꿨는데 거짓 표적이 하나도 안 생깁니다. 빔이 다른 곳을 볼 때는 <b>부엽(−30 dB)</b>으로만 들어가기 때문입니다.","a":[["k","#dkind",1]]},{"t":"5 · 출력 ×1000 → 성공","d":"출력만 +30 dB(약 0.5 W → 500 W). 그제야 여러 방위에 거짓 표적이 번집니다. <b>부엽을 거치는 기법은 주엽 기법보다 수십 dB 더 비싸다</b>가 이 모듈의 마지막 메시지입니다.","a":[["w","pj",500],["x","reveal",true]]}];
+  var THEME_KEY = 'ea-jam-theme';
+
+  // ---------- 테마 ----------
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function curTheme(){ return document.documentElement.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('eaTheme');
+    if(b) b.textContent = curTheme()==='dark' ? '밝게' : '어둡게';
+  }
+  function toggleTheme(){
+    var t = curTheme()==='dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  }
+  try{ var saved = localStorage.getItem(THEME_KEY); if(saved) applyTheme(saved); }catch(e){}
+
+  // ---------- 시연 단계: DOM을 조작하고 이벤트를 쏜다 (모듈 내부 상태에 손대지 않는다) ----------
+  var el = function(id){ return document.getElementById(id); };
+  function fire(e, type){ e.dispatchEvent(new Event(type, {bubbles:true})); }
+  function act(a){
+    var k = a[0], t = el(a[1]);
+    if(k === 'c'){ if(t) t.click(); }
+    else if(k === 'r'){ if(t){ t.value = a[2]; fire(t,'input'); } }
+    else if(k === 'w'){ if(t){ t.value = Math.log(a[2])/Math.LN10; fire(t,'input'); } }   // 와트 → 로그 슬라이더
+    else if(k === 'n'){ if(t){ t.value = a[2]; fire(t,'change'); } }
+    else if(k === 'k'){ var bs = document.querySelectorAll(a[1]+' button'); if(bs[a[2]]) bs[a[2]].click(); }
+    else if(k === 'x'){ if(t){ t.checked = !!a[2]; fire(t,'change'); } }
+  }
+  var idx = -1;
+  function goto(i){
+    if(!STEPS.length) return;
+    i = Math.max(0, Math.min(STEPS.length-1, i));
+    idx = i;
+    STEPS[i].a.forEach(act);
+    var bs = document.querySelectorAll('#eaSteps .ea-step');
+    for(var k=0;k<bs.length;k++) bs[k].setAttribute('aria-current', k===i ? 'true' : 'false');
+    var d = el('eaDesc');
+    if(d) d.innerHTML = '<b>' + STEPS[i].t + '</b> — ' + STEPS[i].d;
+  }
+
+  // ---------- 대상 전환 ----------
+  var NAMES = ['통신','GNSS','PPI','SAR'];
+  function targetEl(name){
+    var list = document.querySelectorAll('header .seg a, header .seg button');
+    for(var i=0;i<list.length;i++) if(list[i].textContent.trim() === name) return list[i];
+    return null;
+  }
+  function goTarget(i){
+    var t = targetEl(NAMES[i]);
+    if(t && t.tagName === 'A' && t.getAttribute('href')) location.href = t.getAttribute('href');
+  }
+
+  // ---------- 재머 ON/OFF ----------
+  function toggleJam(){
+    var on = el('jOn'), off = el('jOff');
+    if(!on || !off) return;
+    (on.getAttribute('aria-pressed') === 'true' ? off : on).click();
+  }
+
+  // ---------- 발표 바 ----------
+  var head = document.querySelector('header');
+  if(head){
+    var bar = document.createElement('div');
+    bar.className = 'ea-pbar';
+    var html = '<span class="ea-lbl">시연 단계</span><span id="eaSteps" style="display:flex;flex-wrap:wrap;gap:6px"></span>' +
+      '<span class="ea-grow"></span>' +
+      '<button class="ea-btn" id="eaPrev" title="이전 단계 ( , )" aria-label="이전 단계">◀</button>' +
+      '<button class="ea-btn" id="eaNext" title="다음 단계 ( . )" aria-label="다음 단계">▶</button>' +
+      '<button class="ea-btn" id="eaTheme" title="밝게 / 어둡게 ( T )">어둡게</button>' +
+      '<button class="ea-btn" id="eaHelp" title="단축키 ( ? )">단축키</button>';
+    if(HOME) html += '<a class="ea-btn" href="' + HOME + '">시작 화면</a>';
+    html += '<span class="ea-desc" id="eaDesc">시연 단계 버튼을 누르면 파라미터가 그 장면으로 맞춰집니다. 슬라이더를 직접 만져도 됩니다.</span>';
+    bar.innerHTML = html;
+    head.parentNode.insertBefore(bar, head.nextSibling);
+
+    var sw = el('eaSteps');
+    STEPS.forEach(function(s, i){
+      var b = document.createElement('button');
+      b.className = 'ea-step'; b.type = 'button'; b.textContent = s.t;
+      b.setAttribute('aria-current','false'); b.title = s.d;
+      b.addEventListener('click', function(){ goto(i); });
+      sw.appendChild(b);
+    });
+    el('eaPrev').addEventListener('click', function(){ goto(idx <= 0 ? 0 : idx-1); });
+    el('eaNext').addEventListener('click', function(){ goto(idx+1); });
+    el('eaTheme').addEventListener('click', toggleTheme);
+    el('eaHelp').addEventListener('click', function(){ help(true); });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+
+  // ---------- 단축키 도움말 ----------
+  var hv = document.createElement('div');
+  hv.className = 'ea-help'; hv.id = 'eaHelpBox';
+  hv.innerHTML = '<div class="ea-box" role="dialog" aria-label="단축키"><h3>단축키</h3>' +
+    '<p>입력란에 커서가 있을 때는 동작하지 않습니다.</p><dl>' +
+    '<dt>Space</dt><dd>재머 ON / OFF</dd>' +
+    '<dt>1 / 2</dt><dd>잡음 재밍 / 기만 재밍</dd>' +
+    '<dt>, / .</dt><dd>이전 / 다음 시연 단계</dd>' +
+    '<dt>0</dt><dd>첫 단계로</dd>' +
+    '<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +
+    '<dt>T</dt><dd>밝게 / 어둡게</dd>' +
+    '<dt>? · H</dt><dd>이 도움말</dd>' +
+    '</dl><button class="ea-close" type="button">닫기</button></div>';
+  document.body.appendChild(hv);
+  function help(open){ if(open) hv.setAttribute('open',''); else hv.removeAttribute('open'); }
+  hv.addEventListener('click', function(e){ if(e.target === hv) help(false); });
+  hv.querySelector('.ea-close').addEventListener('click', function(){ help(false); });
+
+  // ---------- 키 ----------
+  document.addEventListener('keydown', function(ev){
+    if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var t = ev.target, tag = t && t.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    var k = ev.key;
+    if(k === 'Escape'){ help(false); return; }
+    if(k === ' '){ if(tag === 'BUTTON' || tag === 'A') return; ev.preventDefault(); toggleJam(); return; }
+    if(k === '1'){ var n = el('mNoise'); if(n) n.click(); return; }
+    if(k === '2'){ var d = el('mDecep'); if(d) d.click(); return; }
+    if(k === ','){ goto(idx <= 0 ? 0 : idx-1); return; }
+    if(k === '.'){ goto(idx+1); return; }
+    if(k === '0'){ goto(0); return; }
+    if(k === 't' || k === 'T'){ toggleTheme(); return; }
+    if(k === '?' || k === '/' || k === 'h' || k === 'H'){ ev.preventDefault(); help(!hv.hasAttribute('open')); return; }
+    var qi = 'qwer'.indexOf(k.toLowerCase());
+    if(qi >= 0){ goTarget(qi); return; }
+  });
+})();
+</script>
+<!-- 공통블록:끝 -->
+</body>
+</html>

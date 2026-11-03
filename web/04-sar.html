@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자전 중 EA의 위험성 — SAR 영상 재밍 시연</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+    --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+    --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.6}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:17px;font-weight:700}
+header .sub{font-size:13px;color:var(--dim)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg .lbl{font-size:13px;color:var(--dim);margin:0 4px 0 8px}
+.seg button,.seg a{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.seg [aria-pressed="true"]{background:var(--ok);color:var(--onsig);border-color:var(--ok);font-weight:700}
+.layout{display:flex;flex-wrap:wrap;gap:18px;padding:18px 24px 28px}
+aside,main{min-width:0}
+.params{flex:1 1 280px;max-width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.eqs{flex:1 1 300px;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+main{flex:999 1 420px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0;font-size:14px;font-weight:700;color:var(--dim)}
+.group{font-size:12px;font-weight:700;letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.group.sig{color:var(--sig)}.group.jam{color:var(--jam)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);gap:8px}
+.field .row output{color:var(--text);white-space:nowrap}
+.field .fixed{font-size:12px;color:var(--dim);line-height:1.5}
+input[type=range]{width:100%;accent-color:var(--sig);margin:0}
+.jamr input[type=range]{accent-color:var(--jam)}
+.pills{display:flex;gap:6px}
+.pills button{flex:1;height:34px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--sig);color:var(--onsig);border-color:var(--sig);font-weight:700}
+.jamr .pills button[aria-pressed="true"]{background:var(--jam);border-color:var(--jam)}
+.toggle{display:flex;gap:8px}
+.toggle button{flex:1;height:44px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--jam);color:var(--onsig);border-color:var(--jam);font-weight:700}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap;gap:6px}
+.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.status .big{font-size:34px;font-weight:700;line-height:1.1}
+.status .big.ok{color:var(--ok)}.status .big.warn{color:var(--jam)}.status .big.bad{color:var(--bad)}
+.status .desc{font-size:14px;color:var(--muted);max-width:52ch}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+.imgwrap{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#000}
+.imgwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:auto}
+.imgwrap svg{position:absolute;inset:0;width:100%;height:100%}
+.eq{padding:12px;background:var(--card);border-radius:8px;font-size:13px;line-height:1.9;overflow-x:auto}
+.eq .k{color:var(--dim);font-size:12px}
+.eq .s{color:var(--sig)}.eq .j{color:var(--jam)}
+.eq .r{font-weight:500}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.res div{padding:10px 12px;background:var(--card);border-radius:8px;display:flex;flex-direction:column;gap:2px}
+.res span:first-child{font-size:11px;color:var(--dim)}
+.res span:last-child{font-size:19px}
+.lesson{margin:auto 0 0;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.6;color:var(--muted)}
+.lesson strong{color:var(--text)}
+footer{padding:14px 24px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--dim)}
+.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--sw)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>전자전 중 EA의 위험성</h1>
+    <div class="sub">SAR 영상 재밍 시연 · 레이더 방정식 + 처리 이득, 영상 영역 모델</div>
+  </div>
+  <div class="seg" role="group" aria-label="재머와 대상 선택">
+    <span class="lbl">재머</span>
+    <button id="mNoise" aria-pressed="true">잡음</button>
+    <button id="mDecep" aria-pressed="false">기만 (DRFM)</button>
+    <span class="lbl">대상</span>
+    <a href="01-comms.html">통신</a>
+    <a href="02-gnss.html">GNSS</a>
+    <a href="03-ppi.html">PPI</a>
+    <button aria-pressed="true">SAR</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="params" aria-label="파라미터">
+    <h2>파라미터</h2>
+    <div class="group sig">SAR (피해 측, 항공기 탑재)</div>
+    <div class="field">
+      <div class="row"><span>대역 · 플랫폼</span><output>X 9.6 GHz · 속도 150 m/s</output></div>
+      <div class="fixed">펄스폭 20 µs, PRF 1.5 kHz, 잡음지수 4 dB (고정). 장면은 3.2 km × 3.2 km, 1 px = 5 m.</div>
+    </div>
+    <div class="field">
+      <div class="row"><label for="pt">첨두 출력 P<sub>t</sub></label><output id="oPt">5 kW</output></div>
+      <input id="pt" type="range" min="2" max="5" step="0.01" value="3.7">
+    </div>
+    <div class="field">
+      <div class="row"><label for="gt">안테나 이득 G<sub>t</sub> = G<sub>r</sub></label><output id="oGt">35 dBi</output></div>
+      <input id="gt" type="range" min="25" max="42" step="1" value="35">
+    </div>
+    <div class="field">
+      <div class="row"><label for="r">SAR–장면 중심 경사거리 R</label><output id="oR">30 km</output></div>
+      <input id="r" type="range" min="10" max="80" step="1" value="30">
+    </div>
+    <div class="field">
+      <div class="row"><label for="res">해상도 ρ (거리 = 방위)</label><output id="oRes">3 m</output></div>
+      <input id="res" type="range" min="1" max="10" step="0.5" value="3">
+      <div class="fixed">대역폭 B = c/2ρ, 압축 이득 G<sub>c</sub> = τB, 방위 적분 이득 G<sub>a</sub> = PRF·λR/(2vρ)</div>
+    </div>
+
+    <div class="group jam">재머 (공격 측, 장면 안 지상)</div>
+    <div class="field jamr">
+      <div class="row"><label for="pj">재머 출력 P<sub>j</sub></label><output id="oPj">10 W</output></div>
+      <input id="pj" type="range" min="-3" max="4" step="0.01" value="1">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="gj">재머 안테나 이득 G<sub>j</sub></label><output id="oGj">10 dBi</output></div>
+      <input id="gj" type="range" min="0" max="25" step="1" value="10">
+    </div>
+    <div class="field jamr" id="bjField">
+      <div class="row"><label for="bj">재밍 대역폭 B<sub>j</sub></label><output id="oBj">50 MHz</output></div>
+      <input id="bj" type="range" min="10" max="500" step="10" value="50">
+      <div class="fixed">잡음은 압축 이득을 받지 못합니다. 레이더 대역폭보다 넓으면 그만큼 전력이 흩어집니다.</div>
+    </div>
+    <div class="field jamr" id="dField" hidden>
+      <div class="row"><label for="nf">거짓 표적 수 · 거리 간격</label><output id="oNf">4개 · 150 m</output></div>
+      <input id="nf" type="range" min="1" max="8" step="1" value="4">
+      <input id="df" type="range" min="50" max="600" step="10" value="150" style="margin-top:6px">
+      <div class="fixed">DRFM이 SAR 펄스를 저장해 지연·도플러 변조 후 되보냅니다. 복제 신호는 압축·적분 이득을 그대로 받아 적은 전력으로도 선명한 거짓 표적이 됩니다.</div>
+    </div>
+    <div class="fixed">재머 위치는 오른쪽 영상 위의 노란 표식을 끌어 옮깁니다.</div>
+  </aside>
+
+  <main>
+    <section class="card">
+      <div class="head"><span>영상 판독 상태</span><span id="modeTag">잡음 재밍</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="toggle" style="flex:0 0 auto">
+          <button id="jOff" aria-pressed="true" style="padding:0 18px">재머 OFF</button>
+          <button id="jOn" aria-pressed="false" style="padding:0 18px">재머 ON</button>
+        </div>
+        <label class="chk"><input type="checkbox" id="reveal"> 발표자용: 진짜 차량(초록)·거짓 표적(노랑) 표시</label>
+        <button id="reseed" style="height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer">스펙클 재생성</button>
+      </div>
+      <div class="status">
+        <div class="big ok" id="stBig">식별 가능</div>
+        <div class="desc" id="stDesc">재머가 꺼져 있습니다. 도로 위 차량 6대가 클러터 위로 또렷이 보입니다.</div>
+      </div>
+    </section>
+
+    <div class="twocol">
+      <section class="card">
+        <div class="head"><span>원본 영상 (재머 없음)</span><span class="mono" id="refTag"></span></div>
+        <div class="imgwrap"><canvas id="cRef" width="320" height="320"></canvas><svg id="oRef" viewBox="0 0 320 320" aria-hidden="true"></svg></div>
+        <div class="legend"><span style="--sw:#2a2a2a">수면</span><span style="--sw:#6a6a6a">초지·농경지</span><span style="--sw:#8c8c8c">숲</span><span style="--sw:#d0d0d0">시가지</span><span style="--sw:#ffffff">차량(점표적)</span></div>
+      </section>
+      <section class="card">
+        <div class="head"><span>재밍 후 영상</span><span class="mono" id="jamTag"></span></div>
+        <div class="imgwrap"><canvas id="cJam" width="320" height="320"></canvas><svg id="oJam" viewBox="0 0 320 320" aria-label="재머 위치와 표적 표시"></svg></div>
+        <div class="legend"><span style="--sw:#E6B84A">재머 (끌어서 이동)</span><span style="--sw:#7FE3B6">진짜 차량 (발표자용)</span><span style="--sw:#FF8A7A">거짓 표적 (발표자용)</span></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="head"><span>표적 대 배경 비 — 차량 vs (클러터 + 잡음 + 재머)</span><span class="mono" id="tcrTag"></span></div>
+      <svg class="svgfit" id="tcr" viewBox="0 0 760 90" role="img" aria-label="표적 대 배경 비 게이지" style="width:100%;height:auto;display:block">
+        <rect x="24" y="30" width="712" height="16" rx="8" fill="var(--line)"></rect>
+        <rect id="tcrFill" x="24" y="30" width="0" height="16" rx="8" fill="var(--ok)"></rect>
+        <line id="tcrThr1" x1="0" y1="24" x2="0" y2="52" stroke="var(--jam)" stroke-width="2"></line>
+        <line id="tcrThr2" x1="0" y1="24" x2="0" y2="52" stroke="var(--bad)" stroke-width="2"></line>
+        <text x="24" y="70" fill="var(--dim)" font-size="11" class="mono">−10 dB</text>
+        <text x="736" y="70" fill="var(--dim)" font-size="11" text-anchor="end" class="mono">+30 dB</text>
+        <text id="tcrThr1Txt" x="0" y="16" fill="var(--jam)" font-size="11" text-anchor="middle">열화 10 dB</text>
+        <text id="tcrThr2Txt" x="0" y="16" fill="var(--bad)" font-size="11" text-anchor="middle">식별 불가 3 dB</text>
+      </svg>
+    </section>
+  </main>
+
+  <aside class="eqs" aria-label="수식">
+    <h2>수식</h2>
+    <div>
+      <div class="group sig" style="margin-bottom:8px">SAR 영상 픽셀 전력 (양방향 + 처리 이득)</div>
+      <div class="eq mono">
+        <div>S = P<sub>t</sub> G<sub>t</sub> G<sub>r</sub> λ² σ / ((4π)³ R⁴) · G<sub>c</sub> · G<sub>a</sub></div>
+        <div class="k" id="eqG"></div>
+        <div class="k">클러터 셀 σ = σ⁰·ρ² (초지 σ⁰ = −12 dB) · 차량 σ = 10 m²</div>
+        <div class="r">S<sub>차량</sub> = <span id="sTOut">—</span> · S<sub>클러터</sub> = <span id="sCOut">—</span></div>
+        <div class="k">N = kT·B·NF = <span id="nOut">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group jam" style="margin-bottom:8px" id="eqJhead">재머 수신 전력 (단방향, 처리 이득 없음)</div>
+      <div class="eq mono">
+        <div id="eqJf">J = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> λ² / ((4π)² R<sub>j</sub>²) · min(1, B/B<sub>j</sub>)</div>
+        <div class="k" id="eqJ"></div>
+        <div class="r">J = <span id="jOut">—</span></div>
+        <div class="k" id="eqJnote"></div>
+      </div>
+    </div>
+    <div>
+      <div class="group" style="margin-bottom:8px;color:var(--dim)">결과</div>
+      <div class="res mono">
+        <div><span>처리 이득 G<sub>c</sub>+G<sub>a</sub></span><span id="gpOut">—</span></div>
+        <div><span id="r2n">차량 / (클러터+N+J)</span><span id="tcrOut">—</span></div>
+        <div><span id="r3n">J / 클러터</span><span id="jcOut">—</span></div>
+        <div><span id="r4n">현재 위치에서 식별 불가에 필요한 P<sub>j</sub></span><span id="needPj">—</span></div>
+      </div>
+    </div>
+    <p class="lesson" id="lesson"></p>
+  </aside>
+</div>
+
+<footer>
+  <span>모든 제원은 교육용 가상 값이며 실제 장비와 무관합니다. 장면은 토지피복 분류 + 반사계수 + 스펙클로 합성한 영상 영역 모델이며 원시 에코 처리를 재현하지 않습니다.</span>
+  <span>시연 버전 v0.2 · SAR 모듈</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const dB = x => 10*Math.log10(x);
+  const set = (id, attrs) => { const el=$(id); for(const k in attrs) el.setAttribute(k, attrs[k]); };
+  const W = 320, PX = 5; // px, m per px
+  const C0 = 3e8, F = 9.6e9, LAM = C0/F, TAU = 20e-6, PRF = 1500, V = 150, NF = 4, SIG0_GRASS = -12, SIG_VEH = 10;
+  const S = { pt:5000, gt:35, r:30, res:3, pj:10, gj:10, bj:50, nf:4, df:150, jx:230, jy:110, on:false, mode:'noise' };
+
+  // ---------- 장면: 토지피복 분류 ----------
+  // 클래스: 0 수면, 1 초지, 2 농경지, 3 숲, 4 도로, 5 시가지
+  const SIG0 = [-20, -12, -10, -8, -17, -3];
+  const cls = new Uint8Array(W*W);
+  const vehicles = [];
+  function buildScene(){
+    let seed = 12345; const rnd = () => (seed = (seed*1664525+1013904223)>>>0)/4294967296;
+    for(let y=0;y<W;y++) for(let x=0;x<W;x++){
+      let c = 1;
+      const fx = Math.floor(x/40), fy = Math.floor(y/40);
+      if(((fx*7+fy*13)%5)===0) c = 2;                              // 농경지 블록
+      const fr = Math.sin(x*0.05)*Math.cos(y*0.04) + Math.sin((x+y)*0.02);
+      if(fr > 0.9 && x > 180) c = 3;                                // 숲
+      const river = 60 + 25*Math.sin(y*0.025) + 10*Math.sin(y*0.09);
+      if(Math.abs(x - river) < 9) c = 0;                            // 강
+      if(x > 200 && x < 290 && y > 190 && y < 280 && ((x%18)>3) && ((y%18)>4)) c = 5; // 시가지 블록
+      const road = 160 + 20*Math.sin(x*0.02);
+      if(Math.abs(y - road) < 2.5) c = 4;                           // 동서 도로
+      if(Math.abs(x - 150) < 2.5 && y < road) c = 4;                // 남북 도로
+      cls[y*W+x] = c;
+    }
+    vehicles.length = 0;
+    for(let i=0;i<6;i++){ const x = 40 + i*45 + Math.floor(rnd()*10); const y = Math.round(160 + 20*Math.sin(x*0.02)) - 4; vehicles.push({x, y}); }
+  }
+  let speckle = new Float32Array(W*W);
+  function reseed(){
+    // 4-룩 스펙클: 지수분포 4개 평균
+    for(let i=0;i<W*W;i++){ let s=0; for(let k=0;k<4;k++) s += -Math.log(1-Math.random()); speckle[i] = s/4; }
+  }
+
+  // ---------- 물리 모델 ----------
+  function model(){
+    const B = C0/(2*S.res);
+    const Gc = TAU*B;
+    const Ga = PRF*LAM*S.r*1000/(2*V*S.res);
+    const base = dB(S.pt*1000) + 2*S.gt + 20*Math.log10(LAM) - 30*Math.log10(4*Math.PI) - 40*Math.log10(S.r*1000) + dB(Gc) + dB(Ga); // dBm per m² RCS
+    const sC = base + SIG0_GRASS + dB(S.res*S.res);
+    const sT = base + dB(SIG_VEH);
+    const N = -174 + dB(B) + NF;
+    // 재머: 장면 안 위치 → 경사거리 ≈ R + (y 오프셋). 주엽 안.
+    const Rj = S.r + (S.jy - W/2)*PX/1000;
+    const J1 = dB(S.pj*1000) + S.gj + S.gt + 20*Math.log10(LAM) - 20*Math.log10(4*Math.PI) - 20*Math.log10(Rj*1000);
+    const bw = dB(Math.min(1, B/(S.bj*1e6)));
+    const Jn = J1 + bw;                      // 잡음 재머: 처리 이득 없음
+    const Jd = J1 + dB(Gc) + dB(Ga);         // DRFM 복제: 압축·적분 이득 받음 (거짓 표적 전력)
+    const J = (S.on && S.mode==='noise') ? Jn : -Infinity;
+    const bg = dB(Math.pow(10,sC/10) + Math.pow(10,N/10) + (S.on && S.mode==='noise' ? Math.pow(10,Jn/10) : 0));
+    const tcr = sT - bg;
+    // 거짓 표적 등가 RCS: Jd = base + 10log σ_eq
+    const sigEq = Math.pow(10, (Jd - base)/10);
+    // 식별 불가(TCR 3 dB)에 필요한 재머 전력
+    const bgNeed = sT - 3; const JnNeed = dB(Math.max(1e-30, Math.pow(10,bgNeed/10) - Math.pow(10,sC/10) - Math.pow(10,N/10)));
+    const needPj = S.pj * Math.pow(10, (JnNeed - Jn)/10);
+    return {B, Gc, Ga, base, sC, sT, N, Rj, Jn, Jd, J, bg, tcr, sigEq, needPj};
+  }
+
+  const fmtW = w => w>=1000 ? (w/1000).toFixed(1)+' kW' : w>=10 ? w.toFixed(0)+' W' : w>=1 ? w.toFixed(1)+' W' : w>=0.001 ? (w*1000).toFixed(0)+' mW' : (w*1e6).toFixed(0)+' µW';
+
+  // ---------- 렌더링 ----------
+  const cRef = $('cRef').getContext('2d'), cJam = $('cJam').getContext('2d');
+  const imgRef = cRef.createImageData(W, W), imgJam = cJam.createImageData(W, W);
+  const noiseBuf = new Float32Array(W*W);
+  function gauss(){ let u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+  function render(){
+    const m = model(), decep = S.mode==='decep';
+    // UI 값
+    $('oPt').textContent = fmtW(S.pt); $('oGt').textContent = S.gt+' dBi'; $('oR').textContent = S.r+' km'; $('oRes').textContent = S.res+' m';
+    $('oPj').textContent = fmtW(S.pj); $('oGj').textContent = S.gj+' dBi'; $('oBj').textContent = S.bj+' MHz'; $('oNf').textContent = S.nf+'개 · '+S.df+' m';
+    $('bjField').hidden = decep; $('dField').hidden = !decep;
+    $('modeTag').textContent = decep ? '기만 재밍 (DRFM 거짓 표적)' : '잡음 재밍';
+    $('eqJhead').textContent = decep ? 'DRFM 복제 신호 (압축·적분 이득 포함)' : '재머 수신 전력 (단방향, 처리 이득 없음)';
+    $('eqJf').innerHTML = decep ? 'J<sub>d</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> λ² / ((4π)² R<sub>j</sub>²) · G<sub>c</sub> · G<sub>a</sub>' : 'J = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> λ² / ((4π)² R<sub>j</sub>²) · min(1, B/B<sub>j</sub>)';
+
+    // 수식 패널
+    $('eqG').textContent = 'B = '+(m.B/1e6).toFixed(0)+' MHz, Gc = τB = '+dB(m.Gc).toFixed(1)+' dB, Ga = '+dB(m.Ga).toFixed(1)+' dB ('+m.Ga.toFixed(0)+' 펄스)';
+    $('sTOut').textContent = m.sT.toFixed(1)+' dBm'; $('sCOut').textContent = m.sC.toFixed(1)+' dBm'; $('nOut').textContent = m.N.toFixed(1)+' dBm';
+    $('eqJ').innerHTML = '= <span class="j">'+fmtW(S.pj)+'</span> · <span class="j">'+Math.pow(10,S.gj/10).toFixed(0)+'</span> · '+Math.pow(10,S.gt/10).toExponential(1)+' · '+LAM.toFixed(4)+'² / ((4π)² · <span class="j">'+(m.Rj*1000).toExponential(2)+'</span>²)'+(decep ? ' · '+dB(m.Gc).toFixed(0)+' dB · '+dB(m.Ga).toFixed(0)+' dB' : ' · '+Math.min(1, m.B/(S.bj*1e6)).toFixed(2));
+    $('jOut').textContent = S.on ? (decep ? m.Jd.toFixed(1)+' dBm (등가 RCS '+(m.sigEq>=1000?(m.sigEq/1000).toFixed(1)+'×10³':m.sigEq.toFixed(m.sigEq<1?2:0))+' m²)' : m.Jn.toFixed(1)+' dBm') : 'OFF';
+    $('eqJnote').textContent = decep ? '복제 신호는 SAR 처리에서 진짜 반사와 똑같이 압축·적분되므로 '+(dB(m.Gc)+dB(m.Ga)).toFixed(0)+' dB 이득을 받습니다. 그래서 mW급 출력으로도 차량(10 m²)보다 밝은 거짓 표적이 됩니다.' : '잡음은 레이더 파형과 상관이 없어 압축·적분 이득을 받지 못합니다. 그만큼 재머가 불리해 잡음으로 SAR를 덮으려면 큰 출력이 필요합니다.';
+    $('gpOut').textContent = (dB(m.Gc)+dB(m.Ga)).toFixed(1)+' dB';
+    $('tcrOut').textContent = m.tcr.toFixed(1)+' dB'; $('tcrOut').style.color = m.tcr>=10 ? 'var(--ok)' : m.tcr>=3 ? 'var(--jam)' : 'var(--bad)';
+    if(decep){ $('r3n').textContent = '거짓 표적 / 차량'; $('jcOut').textContent = S.on ? (m.Jd-m.sT>=0?'+':'')+(m.Jd-m.sT).toFixed(1)+' dB' : '—'; $('r4n').textContent = '차량만큼 밝은 거짓 표적에 필요한 Pj'; $('needPj').textContent = fmtW(S.pj*Math.pow(10,(m.sT-m.Jd)/10)); }
+    else { $('r3n').textContent = 'J / 클러터'; $('jcOut').textContent = S.on ? (m.Jn-m.sC>=0?'+':'')+(m.Jn-m.sC).toFixed(1)+' dB' : '—'; $('r4n').textContent = '현재 위치에서 식별 불가에 필요한 Pj'; $('needPj').textContent = fmtW(m.needPj); }
+    $('lesson').innerHTML = decep
+      ? '<strong>SAR 기만은 처리 이득을 훔쳐 씁니다.</strong> 잡음은 60 dB 가까운 처리 이득을 못 받지만 DRFM 복제본은 받습니다. 같은 재머가 잡음으로는 영상을 흐리지도 못하면서 기만으로는 선명한 거짓 차량을 수십 대 만들 수 있습니다.'
+      : '<strong>SAR는 재머에게 가장 불리한 대상입니다.</strong> 왕복 손실(R⁴)이 있지만 압축·적분 이득이 수십 dB라 클러터조차 잡음보다 40 dB 이상 높습니다. 잡음 재머가 영상을 덮으려면 그 이득만큼 더 센 출력이 필요합니다.';
+
+    // 상태
+    const big=$('stBig'), desc=$('stDesc'); big.className='big';
+    if(!S.on){ big.classList.add('ok'); big.textContent='식별 가능'; desc.textContent='재머가 꺼져 있습니다. 도로 위 차량 6대가 클러터 위로 또렷이 보입니다.'; }
+    else if(decep){
+      if(m.Jd >= m.sT - 3){ big.classList.add('bad'); big.textContent='거짓 표적 '+S.nf+'개'; desc.textContent='진짜 차량 옆에 같은 밝기의 거짓 차량이 줄지어 생겼습니다. 판독관은 영상만으로 구별할 수 없습니다.'; }
+      else if(m.Jd >= m.sC + 3){ big.classList.add('warn'); big.textContent='희미한 거짓 표적'; desc.textContent='거짓 표적이 클러터보다는 밝지만 차량보다 어두워 의심스럽게 보입니다. 출력을 조금만 올리면 구별이 불가능해집니다.'; }
+      else { big.classList.add('ok'); big.textContent='기만 실패'; desc.textContent='복제 신호가 클러터에 묻힙니다. 그래도 필요한 출력은 mW 수준이니 오른쪽 수치를 보세요.'; }
+    } else {
+      if(m.tcr >= 10){ big.classList.add('ok'); big.textContent='식별 가능'; desc.textContent='재머 전력이 클러터에 못 미쳐 영상이 거의 그대로입니다. SAR 처리 이득 때문입니다.'; }
+      else if(m.tcr >= 3){ big.classList.add('warn'); big.textContent='열화'; desc.textContent='잡음 바닥이 올라와 대비가 떨어지고 작은 표적부터 흐려집니다.'; }
+      else { big.classList.add('bad'); big.textContent='식별 불가'; desc.textContent='영상이 잡음에 덮여 차량·도로를 구별할 수 없습니다.'; }
+    }
+
+    // 게이지
+    const gx = v => 24 + Math.max(0, Math.min(1, (v+10)/40))*712;
+    set('tcrFill', {width: (gx(m.tcr)-24).toFixed(1)}); $('tcrFill').setAttribute('fill', m.tcr>=10 ? 'var(--ok)' : m.tcr>=3 ? 'var(--jam)' : 'var(--bad)');
+    set('tcrThr1', {x1:gx(10), x2:gx(10)}); set('tcrThr2', {x1:gx(3), x2:gx(3)}); set('tcrThr1Txt', {x:gx(10)}); set('tcrThr2Txt', {x:gx(3)});
+    $('tcrTag').textContent = (m.tcr>=0?'+':'')+m.tcr.toFixed(1)+' dB';
+
+    drawImages(m);
+    drawOverlay(m);
+  }
+
+  function drawImages(m){
+    const decep = S.mode==='decep';
+    const refC = Math.pow(10, SIG0_GRASS/10); // 초지 기준
+    const blur = Math.max(1, Math.round(S.res/PX*1.0)); // 해상도에 따른 번짐 (px)
+    const noiseRel = Math.pow(10, (m.N - m.sC)/10);                           // N / 클러터
+    const jamRel = (S.on && !decep) ? Math.pow(10, (m.Jn - m.sC)/10) : 0;   // J / 클러터
+    const vehRel = Math.pow(10, (m.sT - m.sC)/10);                            // 차량 / 클러터 셀
+    const sigma = Math.max(0.8, blur*0.8);
+    // 클러터 강도 (선형, 초지=1)
+    const base = new Float32Array(W*W);
+    for(let i=0;i<W*W;i++) base[i] = Math.pow(10, SIG0[cls[i]]/10)/refC * speckle[i];
+    // 해상도 번짐: 단순 박스 블러
+    const img = blur>1 ? boxBlur(base, blur) : base;
+    // 점 표적: 가우시안 PSF
+    const addPoint = (arr, x, y, amp) => { const rr = Math.ceil(sigma*3); for(let dy=-rr;dy<=rr;dy++) for(let dx=-rr;dx<=rr;dx++){ const xx=x+dx, yy=y+dy; if(xx<0||yy<0||xx>=W||yy>=W) continue; arr[yy*W+xx] += amp*Math.exp(-(dx*dx+dy*dy)/(2*sigma*sigma)); } };
+    const refImg = new Float32Array(img); vehicles.forEach(v => addPoint(refImg, v.x, v.y, vehRel));
+    const jamImg = new Float32Array(refImg);
+    if(S.on && decep){
+      const fRel = Math.pow(10, (m.Jd - m.sC)/10);
+      const step = Math.round(S.df/PX);
+      vehicles.forEach((v,i) => { if(i%2) return; for(let k=1;k<=S.nf;k++){ addPoint(jamImg, v.x, Math.min(W-1, v.y + k*step), fRel); } });
+    }
+    // 잡음 (열잡음 + 재머): 복소 가우시안 → 전력은 지수분포; 4-룩
+    for(let i=0;i<W*W;i++){ let s=0; for(let k=0;k<4;k++){ const a=gauss(), b=gauss(); s += (a*a+b*b)/2; } noiseBuf[i] = s/4; }
+    const toByte = v => { const d = 10*Math.log10(Math.max(v,1e-6)); return Math.max(0, Math.min(255, (d+20)/35*255)); };
+    for(let i=0;i<W*W;i++){
+      const r = refImg[i] + noiseRel*noiseBuf[i];
+      const j = jamImg[i] + (noiseRel + jamRel)*noiseBuf[i];
+      const gr = toByte(r), gj = toByte(j);
+      imgRef.data[i*4]=gr; imgRef.data[i*4+1]=gr; imgRef.data[i*4+2]=gr; imgRef.data[i*4+3]=255;
+      imgJam.data[i*4]=gj; imgJam.data[i*4+1]=gj; imgJam.data[i*4+2]=gj; imgJam.data[i*4+3]=255;
+    }
+    cRef.putImageData(imgRef, 0, 0); cJam.putImageData(imgJam, 0, 0);
+    $('refTag').textContent = 'ρ = '+S.res+' m · 클러터 SNR '+(m.sC-m.N).toFixed(0)+' dB';
+    $('jamTag').textContent = S.on ? (decep ? '거짓 표적 등가 RCS '+(m.sigEq>=1000?(m.sigEq/1000).toFixed(1)+'×10³':m.sigEq.toFixed(m.sigEq<1?2:0))+' m²' : 'J/클러터 '+(m.Jn-m.sC>=0?'+':'')+(m.Jn-m.sC).toFixed(0)+' dB') : '재머 OFF';
+  }
+  function boxBlur(src, r){
+    const tmp = new Float32Array(W*W), out = new Float32Array(W*W), n = 2*r+1;
+    for(let y=0;y<W;y++){ let s=0; for(let x=-r;x<=r;x++) s += src[y*W+Math.max(0,Math.min(W-1,x))]; for(let x=0;x<W;x++){ tmp[y*W+x]=s/n; s += src[y*W+Math.max(0,Math.min(W-1,x+r+1))] - src[y*W+Math.max(0,Math.min(W-1,x-r))]; } }
+    for(let x=0;x<W;x++){ let s=0; for(let y=-r;y<=r;y++) s += tmp[Math.max(0,Math.min(W-1,y))*W+x]; for(let y=0;y<W;y++){ out[y*W+x]=s/n; s += tmp[Math.max(0,Math.min(W-1,y+r+1))*W+x] - tmp[Math.max(0,Math.min(W-1,y-r))*W+x]; } }
+    return out;
+  }
+  function drawOverlay(m){
+    const reveal = $('reveal').checked, decep = S.mode==='decep';
+    let h = '';
+    if(reveal){
+      vehicles.forEach(v => { h += '<circle cx="'+v.x+'" cy="'+v.y+'" r="7" fill="none" stroke="#7FE3B6" stroke-width="1.2"></circle>'; });
+      if(S.on && decep){ const step = Math.round(S.df/PX); vehicles.forEach((v,i) => { if(i%2) return; for(let k=1;k<=S.nf;k++){ const y = v.y+k*step; if(y<W) h += '<circle cx="'+v.x+'" cy="'+y+'" r="7" fill="none" stroke="#FF8A7A" stroke-width="1.2"></circle>'; } }); }
+    }
+    h += '<g id="jm" style="cursor:grab" transform="translate('+S.jx+','+S.jy+')"><circle r="14" fill="transparent"></circle><path d="M0 0 L0 -12 M-6 0 L6 0 L0 -12 Z" fill="none" stroke="#E6B84A" stroke-width="1.5"></path><circle r="3" fill="#E6B84A"></circle><text y="22" fill="#E6B84A" font-size="10" text-anchor="middle" font-family="Noto Sans KR, sans-serif">재머 '+fmtW(S.pj)+'</text></g>';
+    h += '<text x="6" y="314" fill="#E6B84A" font-size="9" font-family="IBM Plex Mono, monospace">↑ 거리(range) 방향 · → 방위(azimuth) 방향 · 경사거리 '+m.Rj.toFixed(1)+' km</text>';
+    $('oJam').innerHTML = h;
+    $('oJam').style.opacity = S.on ? 1 : .55;
+    // 원본 영상 오버레이: 차량 표시만
+    $('oRef').innerHTML = reveal ? vehicles.map(v => '<circle cx="'+v.x+'" cy="'+v.y+'" r="7" fill="none" stroke="#7FE3B6" stroke-width="1.2"></circle>').join('') : '';
+    const jm = $('jm'); let on=false; const svg = $('oJam');
+    const toSvg = e => { const p = svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    jm.addEventListener('pointerdown', e => { on=true; jm.setPointerCapture(e.pointerId); e.preventDefault(); });
+    jm.addEventListener('pointermove', e => { if(!on) return; const p = toSvg(e); S.jx = Math.max(8, Math.min(W-8, Math.round(p.x))); S.jy = Math.max(8, Math.min(W-8, Math.round(p.y))); jm.setAttribute('transform','translate('+S.jx+','+S.jy+')'); });
+    const end = () => { if(on){ on=false; render(); } }; jm.addEventListener('pointerup', end); jm.addEventListener('pointercancel', end);
+  }
+
+  // ---------- 이벤트 ----------
+  const bind = (id, fn) => $(id).addEventListener('input', e => { fn(e.target.value); render(); });
+  bind('pt', v => S.pt = Math.pow(10,+v)); bind('gt', v => S.gt = +v); bind('r', v => S.r = +v); bind('res', v => S.res = +v);
+  bind('pj', v => S.pj = Math.pow(10,+v)); bind('gj', v => S.gj = +v); bind('bj', v => S.bj = +v); bind('nf', v => S.nf = +v); bind('df', v => S.df = +v);
+  $('jOff').addEventListener('click', () => { S.on=false; $('jOff').setAttribute('aria-pressed','true'); $('jOn').setAttribute('aria-pressed','false'); render(); });
+  $('jOn').addEventListener('click',  () => { S.on=true;  $('jOn').setAttribute('aria-pressed','true');  $('jOff').setAttribute('aria-pressed','false'); render(); });
+  $('mNoise').addEventListener('click', () => { S.mode='noise'; $('mNoise').setAttribute('aria-pressed','true'); $('mDecep').setAttribute('aria-pressed','false'); render(); });
+  $('mDecep').addEventListener('click', () => { S.mode='decep'; $('mDecep').setAttribute('aria-pressed','true'); $('mNoise').setAttribute('aria-pressed','false'); render(); });
+  $('reveal').addEventListener('change', render);
+  $('reseed').addEventListener('click', () => { reseed(); render(); });
+
+  buildScene(); reseed(); render();
+})();
+</script>
+<!-- 공통블록:시작 (도구/공통블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+/* 수동 테마 전환용. 헤드의 light 미디어 규칙과 같은 명시도라 문서 순서로 이긴다 */
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+  color-scheme:light;
+}
+.ea-pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ea-pbar .ea-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-right:2px}
+.ea-step{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ea-step[aria-current="true"]{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.ea-btn{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.ea-btn:hover,.ea-step:hover{border-color:var(--ok)}
+.ea-grow{flex:1 1 auto}
+.ea-desc{flex:1 0 100%;font-size:12px;line-height:1.55;color:var(--dim);padding-top:1px}
+.ea-desc b{color:var(--text);font-weight:500}
+.ea-help{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;padding:20px;display:none;align-items:center;justify-content:center}
+.ea-help[open]{display:flex}
+.ea-help .ea-box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:22px 24px;max-width:470px;width:100%;max-height:80vh;overflow:auto}
+.ea-help h3{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--text)}
+.ea-help p{margin:0 0 14px;font-size:12px;color:var(--dim)}
+.ea-help dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.ea-help dt{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--jam);white-space:nowrap}
+.ea-help dd{margin:0;color:var(--muted)}
+.ea-help .ea-close{margin-top:18px;width:100%;height:38px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:720px){.ea-pbar{padding:10px 16px}}
+@media print{.ea-pbar,.ea-help{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MOD = "04";
+  var HOME = "index.html";          // 빈 문자열이면 시작 화면 버튼 없음
+  var STEPS = [{"t":"0 · 원본 영상","d":"X 9.6 GHz · 해상도 3 m. 도로 위 차량 6대. 압축·적분 이득이 약 62 dB라 <b>클러터조차 열잡음보다 47 dB 높습니다</b>.","a":[["c","mNoise"],["c","jOff"],["w","pt",5000],["r","gt",35],["r","r",30],["r","res",3],["x","reveal",false]]},{"t":"1 · 잡음 재밍 10 W","d":"PPI에서 1 MW 레이더를 무력화한 그 10 W입니다. 그런데 SAR 영상은 <b>거의 그대로</b>입니다. 잡음은 레이더 파형과 상관이 없어 처리 이득을 못 받습니다.","a":[["w","pj",10],["r","gj",10],["r","bj",50],["c","jOn"]]},{"t":"2 · 잡음 1 kW","d":"100배(+20 dB)를 올려야 표적 대 배경 비가 3 dB 아래로 내려가 <b>식별 불가</b>가 됩니다. SAR는 잡음 재머에게 가장 불리한 대상입니다.","a":[["w","pj",1000]]},{"t":"3 · DRFM 기만 10 mW","d":"출력을 10만분의 1로 줄였는데 거짓 차량이 진짜보다 <b>밝습니다</b>. 복제 신호는 SAR 처리에서 진짜 반사와 똑같이 압축·적분되어 62 dB를 그대로 받습니다.","a":[["c","mDecep"],["w","pj",0.01],["r","nf",4],["r","df",150]]},{"t":"4 · 정답 공개","d":"초록이 진짜 차량, 빨강이 거짓 표적입니다. 영상만으로는 구별할 수 없습니다 — 네 대상 모두에서 기만은 경고 없이 일어납니다.","a":[["x","reveal",true]]}];
+  var THEME_KEY = 'ea-jam-theme';
+
+  // ---------- 테마 ----------
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function curTheme(){ return document.documentElement.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('eaTheme');
+    if(b) b.textContent = curTheme()==='dark' ? '밝게' : '어둡게';
+  }
+  function toggleTheme(){
+    var t = curTheme()==='dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  }
+  try{ var saved = localStorage.getItem(THEME_KEY); if(saved) applyTheme(saved); }catch(e){}
+
+  // ---------- 시연 단계: DOM을 조작하고 이벤트를 쏜다 (모듈 내부 상태에 손대지 않는다) ----------
+  var el = function(id){ return document.getElementById(id); };
+  function fire(e, type){ e.dispatchEvent(new Event(type, {bubbles:true})); }
+  function act(a){
+    var k = a[0], t = el(a[1]);
+    if(k === 'c'){ if(t) t.click(); }
+    else if(k === 'r'){ if(t){ t.value = a[2]; fire(t,'input'); } }
+    else if(k === 'w'){ if(t){ t.value = Math.log(a[2])/Math.LN10; fire(t,'input'); } }   // 와트 → 로그 슬라이더
+    else if(k === 'n'){ if(t){ t.value = a[2]; fire(t,'change'); } }
+    else if(k === 'k'){ var bs = document.querySelectorAll(a[1]+' button'); if(bs[a[2]]) bs[a[2]].click(); }
+    else if(k === 'x'){ if(t){ t.checked = !!a[2]; fire(t,'change'); } }
+  }
+  var idx = -1;
+  function goto(i){
+    if(!STEPS.length) return;
+    i = Math.max(0, Math.min(STEPS.length-1, i));
+    idx = i;
+    STEPS[i].a.forEach(act);
+    var bs = document.querySelectorAll('#eaSteps .ea-step');
+    for(var k=0;k<bs.length;k++) bs[k].setAttribute('aria-current', k===i ? 'true' : 'false');
+    var d = el('eaDesc');
+    if(d) d.innerHTML = '<b>' + STEPS[i].t + '</b> — ' + STEPS[i].d;
+  }
+
+  // ---------- 대상 전환 ----------
+  var NAMES = ['통신','GNSS','PPI','SAR'];
+  function targetEl(name){
+    var list = document.querySelectorAll('header .seg a, header .seg button');
+    for(var i=0;i<list.length;i++) if(list[i].textContent.trim() === name) return list[i];
+    return null;
+  }
+  function goTarget(i){
+    var t = targetEl(NAMES[i]);
+    if(t && t.tagName === 'A' && t.getAttribute('href')) location.href = t.getAttribute('href');
+  }
+
+  // ---------- 재머 ON/OFF ----------
+  function toggleJam(){
+    var on = el('jOn'), off = el('jOff');
+    if(!on || !off) return;
+    (on.getAttribute('aria-pressed') === 'true' ? off : on).click();
+  }
+
+  // ---------- 발표 바 ----------
+  var head = document.querySelector('header');
+  if(head){
+    var bar = document.createElement('div');
+    bar.className = 'ea-pbar';
+    var html = '<span class="ea-lbl">시연 단계</span><span id="eaSteps" style="display:flex;flex-wrap:wrap;gap:6px"></span>' +
+      '<span class="ea-grow"></span>' +
+      '<button class="ea-btn" id="eaPrev" title="이전 단계 ( , )" aria-label="이전 단계">◀</button>' +
+      '<button class="ea-btn" id="eaNext" title="다음 단계 ( . )" aria-label="다음 단계">▶</button>' +
+      '<button class="ea-btn" id="eaTheme" title="밝게 / 어둡게 ( T )">어둡게</button>' +
+      '<button class="ea-btn" id="eaHelp" title="단축키 ( ? )">단축키</button>';
+    if(HOME) html += '<a class="ea-btn" href="' + HOME + '">시작 화면</a>';
+    html += '<span class="ea-desc" id="eaDesc">시연 단계 버튼을 누르면 파라미터가 그 장면으로 맞춰집니다. 슬라이더를 직접 만져도 됩니다.</span>';
+    bar.innerHTML = html;
+    head.parentNode.insertBefore(bar, head.nextSibling);
+
+    var sw = el('eaSteps');
+    STEPS.forEach(function(s, i){
+      var b = document.createElement('button');
+      b.className = 'ea-step'; b.type = 'button'; b.textContent = s.t;
+      b.setAttribute('aria-current','false'); b.title = s.d;
+      b.addEventListener('click', function(){ goto(i); });
+      sw.appendChild(b);
+    });
+    el('eaPrev').addEventListener('click', function(){ goto(idx <= 0 ? 0 : idx-1); });
+    el('eaNext').addEventListener('click', function(){ goto(idx+1); });
+    el('eaTheme').addEventListener('click', toggleTheme);
+    el('eaHelp').addEventListener('click', function(){ help(true); });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+
+  // ---------- 단축키 도움말 ----------
+  var hv = document.createElement('div');
+  hv.className = 'ea-help'; hv.id = 'eaHelpBox';
+  hv.innerHTML = '<div class="ea-box" role="dialog" aria-label="단축키"><h3>단축키</h3>' +
+    '<p>입력란에 커서가 있을 때는 동작하지 않습니다.</p><dl>' +
+    '<dt>Space</dt><dd>재머 ON / OFF</dd>' +
+    '<dt>1 / 2</dt><dd>잡음 재밍 / 기만 재밍</dd>' +
+    '<dt>, / .</dt><dd>이전 / 다음 시연 단계</dd>' +
+    '<dt>0</dt><dd>첫 단계로</dd>' +
+    '<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +
+    '<dt>T</dt><dd>밝게 / 어둡게</dd>' +
+    '<dt>? · H</dt><dd>이 도움말</dd>' +
+    '</dl><button class="ea-close" type="button">닫기</button></div>';
+  document.body.appendChild(hv);
+  function help(open){ if(open) hv.setAttribute('open',''); else hv.removeAttribute('open'); }
+  hv.addEventListener('click', function(e){ if(e.target === hv) help(false); });
+  hv.querySelector('.ea-close').addEventListener('click', function(){ help(false); });
+
+  // ---------- 키 ----------
+  document.addEventListener('keydown', function(ev){
+    if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var t = ev.target, tag = t && t.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    var k = ev.key;
+    if(k === 'Escape'){ help(false); return; }
+    if(k === ' '){ if(tag === 'BUTTON' || tag === 'A') return; ev.preventDefault(); toggleJam(); return; }
+    if(k === '1'){ var n = el('mNoise'); if(n) n.click(); return; }
+    if(k === '2'){ var d = el('mDecep'); if(d) d.click(); return; }
+    if(k === ','){ goto(idx <= 0 ? 0 : idx-1); return; }
+    if(k === '.'){ goto(idx+1); return; }
+    if(k === '0'){ goto(0); return; }
+    if(k === 't' || k === 'T'){ toggleTheme(); return; }
+    if(k === '?' || k === '/' || k === 'h' || k === 'H'){ ev.preventDefault(); help(!hv.hasAttribute('open')); return; }
+    var qi = 'qwer'.indexOf(k.toLowerCase());
+    if(qi >= 0){ goTarget(qi); return; }
+  });
+})();
+</script>
+<!-- 공통블록:끝 -->
+</body>
+</html>

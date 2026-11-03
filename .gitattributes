@@ -1,0 +1,6 @@
+# 도구/빌드.py 가 항상 LF로 쓰기 때문에, 작업본도 LF로 맞춰야
+# 윈도우에서 클론한 뒤 빌드를 돌렸을 때 줄바꿈만 바뀐 가짜 diff가 생기지 않는다.
+* text=auto eol=lf
+
+*.docx binary
+*.hwpx binary

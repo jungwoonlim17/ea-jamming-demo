@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시연 화면 — 통신 · 잡음 재밍</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7FE3B6}a:hover{color:#A9F0D0}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0C141D; color: #E6EDF3; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; box-sizing: border-box">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 32px; border-bottom: 1px solid #1F2C3A">
+    <div style="display: flex; align-items: center; gap: 16px">
+      <a href="Main.dc.html" style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; color: #9FB0C0; text-decoration: none; font-size: 14px">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 L5 8 L10 13"></path></svg>
+        시작화면
+      </a>
+      <span style="font-size: 16px; font-weight: 700">전자전 중 EA의 위험성</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px">
+      <span style="color: #8FA2B4; margin-right: 4px">재머</span>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; background: #7FE3B6; color: #0C141D; font-weight: 700; border-radius: 8px; text-decoration: none">잡음</a>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid #3A4B5C; color: #E6EDF3; border-radius: 8px; text-decoration: none">기만</a>
+      <span style="width: 1px; height: 24px; background: #2B3A4A; margin: 0 8px"></span>
+      <span style="color: #8FA2B4; margin-right: 4px">대상</span>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; background: #7FB8FF; color: #0C141D; font-weight: 700; border-radius: 8px; text-decoration: none">통신</a>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid #3A4B5C; color: #E6EDF3; border-radius: 8px; text-decoration: none">GNSS</a>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid #3A4B5C; color: #E6EDF3; border-radius: 8px; text-decoration: none">PPI</a>
+      <a href="#" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid #3A4B5C; color: #E6EDF3; border-radius: 8px; text-decoration: none">SAR</a>
+    </div>
+  </header>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px 32px 28px 32px; flex-grow: 1">
+
+    <aside style="flex: 1 1 280px; max-width: 320px; min-width: 0; background: #0F1A25; border: 1px solid #1F2C3A; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 1px; color: #8FA2B4">PARAMETERS</h2>
+        <a href="#" style="font-size: 12px; color: #7FE3B6; text-decoration: none">초기값 복원</a>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 700; color: #7FB8FF; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #1F2C3A">통신 링크</div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="band" style="font-size: 13px; color: #C9D4DF">대역 (주파수 f)</label>
+        <div style="display: flex; gap: 6px">
+          <a href="#" style="flex: 1; text-align: center; padding: 8px 0; border: 1px solid #3A4B5C; border-radius: 6px; font-size: 12px; color: #C9D4DF; text-decoration: none">HF</a>
+          <a href="#" style="flex: 1; text-align: center; padding: 8px 0; background: #7FB8FF; border-radius: 6px; font-size: 12px; font-weight: 700; color: #0C141D; text-decoration: none">VHF</a>
+          <a href="#" style="flex: 1; text-align: center; padding: 8px 0; border: 1px solid #3A4B5C; border-radius: 6px; font-size: 12px; color: #C9D4DF; text-decoration: none">UHF</a>
+          <a href="#" style="flex: 1; text-align: center; padding: 8px 0; border: 1px solid #3A4B5C; border-radius: 6px; font-size: 12px; color: #C9D4DF; text-decoration: none">L</a>
+          <a href="#" style="flex: 1; text-align: center; padding: 8px 0; border: 1px solid #3A4B5C; border-radius: 6px; font-size: 12px; color: #C9D4DF; text-decoration: none">S</a>
+        </div>
+        <input id="band" type="text" value="150 MHz" style="display: none">
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="pt" style="color: #C9D4DF">송신 출력 P<sub>t</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">10 W</span></div>
+        <input id="pt" type="range" min="1" max="100" value="10" style="width: 100%; accent-color: #7FB8FF">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="gt" style="color: #C9D4DF">송·수신 안테나 이득 G<sub>t</sub>, G<sub>r</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">2 dBi</span></div>
+        <input id="gt" type="range" min="0" max="20" value="2" style="width: 100%; accent-color: #7FB8FF">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="rs" style="color: #C9D4DF">통신 거리 R<sub>s</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">20 km</span></div>
+        <input id="rs" type="range" min="1" max="100" value="20" style="width: 100%; accent-color: #7FB8FF">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="bs" style="color: #C9D4DF">신호 대역폭 B<sub>s</sub> · 변조</label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">25 kHz · QPSK</span></div>
+        <input id="bs" type="range" min="5" max="200" value="25" style="width: 100%; accent-color: #7FB8FF">
+      </div>
+
+      <div style="font-size: 12px; font-weight: 700; color: #E6B84A; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #1F2C3A; margin-top: 4px">재머 (잡음)</div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="pj" style="color: #C9D4DF">재머 출력 P<sub>j</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">50 W</span></div>
+        <input id="pj" type="range" min="0" max="500" value="50" style="width: 100%; accent-color: #E6B84A">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="gj" style="color: #C9D4DF">재머 안테나 이득 G<sub>j</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">6 dBi</span></div>
+        <input id="gj" type="range" min="0" max="20" value="6" style="width: 100%; accent-color: #E6B84A">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="rj" style="color: #C9D4DF">재머 거리 R<sub>j</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">35 km</span></div>
+        <input id="rj" type="range" min="1" max="200" value="35" style="width: 100%; accent-color: #E6B84A">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><label for="bj" style="color: #C9D4DF">재밍 대역폭 B<sub>j</sub></label><span style="font-family: 'IBM Plex Mono', monospace; color: #E6EDF3">100 kHz</span></div>
+        <input id="bj" type="range" min="5" max="2000" value="100" style="width: 100%; accent-color: #E6B84A">
+      </div>
+
+      <div style="margin-top: auto; display: flex; gap: 8px">
+        <a href="#" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; height: 42px; border: 1px solid #3A4B5C; border-radius: 8px; color: #E6EDF3; font-size: 13px; text-decoration: none">재머 OFF</a>
+        <a href="#" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; height: 42px; background: #E6B84A; border-radius: 8px; color: #0C141D; font-weight: 700; font-size: 13px; text-decoration: none">재머 ON</a>
+      </div>
+    </aside>
+
+    <main style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+
+        <section style="background: #060B10; border: 1px solid #1F2C3A; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8FA2B4"><span>SPECTRUM</span><span>f<sub>c</sub> = 150 MHz</span></div>
+          <svg role="img" aria-label="신호 스펙트럼 위에 재밍 잡음이 덮인 모습" viewBox="0 0 400 200" width="100%" style="display: block">
+            <line x1="30" y1="170" x2="390" y2="170" stroke="#1F2C3A"></line>
+            <line x1="30" y1="20" x2="30" y2="170" stroke="#1F2C3A"></line>
+            <path d="M30 168 L60 160 L80 155 L100 162 L120 150 L140 158 L160 152 L180 160 L200 150 L220 157 L240 148 L260 158 L280 152 L300 160 L320 150 L340 158 L360 154 L390 160" fill="none" stroke="#E6B84A" stroke-width="1.5" opacity="0.5"></path>
+            <path d="M130 170 L130 150 L150 150 L160 149 L190 60 L200 55 L210 60 L240 149 L250 150 L270 150 L270 170" fill="#E6B84A" opacity="0.30"></path>
+            <path d="M130 150 L150 150 L160 149 L190 60 L200 55 L210 60 L240 149 L250 150 L270 150" fill="none" stroke="#E6B84A" stroke-width="2"></path>
+            <path d="M185 170 L185 168 L195 100 L200 95 L205 100 L215 168 L215 170" fill="#7FB8FF" opacity="0.45"></path>
+            <path d="M185 168 L195 100 L200 95 L205 100 L215 168" fill="none" stroke="#7FB8FF" stroke-width="2"></path>
+            <text x="200" y="188" fill="#8FA2B4" font-size="10" text-anchor="middle" font-family="IBM Plex Mono, monospace">frequency</text>
+            <text x="22" y="26" fill="#8FA2B4" font-size="10" text-anchor="end" font-family="IBM Plex Mono, monospace">dBm</text>
+            <text x="300" y="52" fill="#E6B84A" font-size="11" font-family="IBM Plex Mono, monospace">Jammer B<tspan baseline-shift="sub" font-size="8">j</tspan></text>
+            <text x="300" y="112" fill="#7FB8FF" font-size="11" font-family="IBM Plex Mono, monospace">Signal B<tspan baseline-shift="sub" font-size="8">s</tspan></text>
+          </svg>
+        </section>
+
+        <section style="background: #060B10; border: 1px solid #1F2C3A; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8FA2B4"><span>CONSTELLATION · QPSK</span><span>SINR = 3.1 dB</span></div>
+          <svg role="img" aria-label="재밍으로 흩어진 QPSK 성상도" viewBox="0 0 400 200" width="100%" style="display: block">
+            <line x1="200" y1="15" x2="200" y2="185" stroke="#1F2C3A"></line>
+            <line x1="115" y1="100" x2="285" y2="100" stroke="#1F2C3A"></line>
+            <circle cx="150" cy="50" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="162" cy="58" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="141" cy="66" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="157" cy="38" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="135" cy="45" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="170" cy="72" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="148" cy="80" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="178" cy="48" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="130" cy="62" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="188" cy="88" r="2.5" fill="#7FB8FF" opacity="0.8"></circle>
+            <circle cx="250" cy="50" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="238" cy="58" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="259" cy="66" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="243" cy="38" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="265" cy="45" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="230" cy="72" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="252" cy="80" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="222" cy="48" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="270" cy="62" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="212" cy="90" r="2.5" fill="#7FB8FF" opacity="0.8"></circle>
+            <circle cx="150" cy="150" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="162" cy="142" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="141" cy="134" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="157" cy="162" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="135" cy="155" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="170" cy="128" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="148" cy="120" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="178" cy="152" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="130" cy="138" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="192" cy="110" r="2.5" fill="#7FB8FF" opacity="0.8"></circle>
+            <circle cx="250" cy="150" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="238" cy="142" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="259" cy="134" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="243" cy="162" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="265" cy="155" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="230" cy="128" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="252" cy="120" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="222" cy="152" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="270" cy="138" r="2.5" fill="#7FB8FF" opacity="0.8"></circle><circle cx="208" cy="112" r="2.5" fill="#7FB8FF" opacity="0.8"></circle>
+            <circle cx="150" cy="50" r="5" fill="none" stroke="#7FE3B6" stroke-width="1.5"></circle><circle cx="250" cy="50" r="5" fill="none" stroke="#7FE3B6" stroke-width="1.5"></circle><circle cx="150" cy="150" r="5" fill="none" stroke="#7FE3B6" stroke-width="1.5"></circle><circle cx="250" cy="150" r="5" fill="none" stroke="#7FE3B6" stroke-width="1.5"></circle>
+          </svg>
+        </section>
+
+      </div>
+
+      <section style="background: #060B10; border: 1px solid #1F2C3A; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; flex-grow: 1">
+        <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8FA2B4"><span>RECEIVED MESSAGE</span><span>BER = 4.2 × 10<sup>-2</sup></span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; color: #8FA2B4">송신 (원문)</span>
+            <p style="margin: 0; padding: 14px; background: #0C141D; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; line-height: 1.7; color: #E6EDF3">ALPHA 1, THIS IS CONTROL. PROCEED TO WAYPOINT 7 AT 0630. ACKNOWLEDGE.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; color: #E6B84A">수신 (재밍 후)</span>
+            <p style="margin: 0; padding: 14px; background: #0C141D; border: 1px solid #5A4A1E; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; line-height: 1.7; color: #E6EDF3">ALPH# 1, T#IS IS C?NTROL. PR*CEED TO W&amp;YPOINT 7 AT 0#30. ACK?OWL*DGE.</p>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 12px; color: #8FA2B4">
+          <span>오류 문자 8 / 68</span>
+          <span>링크 상태: <span style="color: #E6B84A; font-weight: 700">열화</span></span>
+          <span>기준: BER 10<sup>-3</sup> 이상이면 열화, 10<sup>-1</sup> 이상이면 두절</span>
+        </div>
+      </section>
+    </main>
+
+    <aside style="flex: 1 1 300px; max-width: 340px; min-width: 0; background: #0F1A25; border: 1px solid #1F2C3A; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 1px; color: #8FA2B4">EQUATIONS</h2>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 12px; color: #7FB8FF; font-weight: 700">통신 링크 방정식 (단방향)</span>
+        <div style="padding: 12px; background: #0C141D; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.9; color: #E6EDF3">
+          <div>P<sub>r</sub> = P<sub>t</sub> G<sub>t</sub> G<sub>r</sub> λ² / (4π R<sub>s</sub>)²</div>
+          <div style="color: #8FA2B4; font-size: 12px">= <span style="color: #7FB8FF">10 W</span> · <span style="color: #7FB8FF">1.6</span> · <span style="color: #7FB8FF">1.6</span> · 4.0 / (4π · <span style="color: #7FB8FF">2.0×10⁴</span>)²</div>
+          <div style="color: #E6EDF3">P<sub>r</sub> = −78.0 dBm</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 12px; color: #E6B84A; font-weight: 700">재머 전력 (단방향)</span>
+        <div style="padding: 12px; background: #0C141D; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.9; color: #E6EDF3">
+          <div>P<sub>J</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> λ² / (4π R<sub>j</sub>)² · (B<sub>s</sub>/B<sub>j</sub>)</div>
+          <div style="color: #8FA2B4; font-size: 12px">= <span style="color: #E6B84A">50 W</span> · <span style="color: #E6B84A">4.0</span> · 1.6 · 4.0 / (4π · <span style="color: #E6B84A">3.5×10⁴</span>)² · (25/<span style="color: #E6B84A">100</span>)</div>
+          <div style="color: #E6EDF3">P<sub>J</sub> = −75.1 dBm</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 12px; color: #8FA2B4; font-weight: 700">결과</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <div style="padding: 12px; background: #0C141D; border-radius: 8px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #8FA2B4">J/S</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #E6B84A">+2.9 dB</span></div>
+          <div style="padding: 12px; background: #0C141D; border-radius: 8px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #8FA2B4">SINR</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #E6EDF3">3.1 dB</span></div>
+          <div style="padding: 12px; background: #0C141D; border-radius: 8px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #8FA2B4">BER (QPSK)</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #E6EDF3">4.2e-2</span></div>
+          <div style="padding: 12px; background: #0C141D; border-radius: 8px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #8FA2B4">두절 거리 R<sub>j</sub></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #E6EDF3">≤ 24 km</span></div>
+        </div>
+      </div>
+
+      <p style="margin: auto 0 0 0; font-size: 12px; line-height: 1.6; color: #6F8295">파란 값은 통신 측, 노란 값은 재머 측 파라미터입니다. 왼쪽 슬라이더를 움직이면 이 숫자와 가운데 화면이 함께 바뀝니다. 모든 값은 교육용 가상 제원입니다.</p>
+    </aside>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

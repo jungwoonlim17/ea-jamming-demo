@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자전 중 EA의 위험성 — 통신 재밍 시연</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+    --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+    --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+    color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.6}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:17px;font-weight:700}
+header .sub{font-size:13px;color:var(--dim)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg .lbl{font-size:13px;color:var(--dim);margin:0 4px 0 8px}
+.seg button,.seg a{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.seg [aria-pressed="true"]{background:var(--ok);color:var(--onsig);border-color:var(--ok);font-weight:700}
+.seg .soon{opacity:.55;cursor:not-allowed}
+.layout{display:flex;flex-wrap:wrap;gap:18px;padding:18px 24px 28px}
+aside,main{min-width:0}
+.params{flex:1 1 280px;max-width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.eqs{flex:1 1 300px;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+main{flex:999 1 420px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0;font-size:14px;font-weight:700;color:var(--dim)}
+.group{font-size:12px;font-weight:700;letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.group.sig{color:var(--sig)}.group.jam{color:var(--jam)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.field .row output{color:var(--text)}
+.field .row input[type=number]{width:84px;height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;text-align:right}
+.field .row .unit{display:inline-flex;align-items:center;gap:6px;color:var(--dim)}
+input[type=range]{width:100%;accent-color:var(--sig);margin:0}
+.jamr input[type=range]{accent-color:var(--jam)}
+.pills{display:flex;gap:6px}
+.pills button{flex:1;height:34px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--sig);color:var(--onsig);border-color:var(--sig);font-weight:700}
+.toggle{display:flex;gap:8px;margin-top:auto}
+.toggle button{flex:1;height:44px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--jam);color:var(--onsig);border-color:var(--jam);font-weight:700}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap;gap:6px}
+.hero{gap:14px}
+.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.status .big{font-size:34px;font-weight:700;line-height:1.1}
+.status .big.ok{color:var(--ok)}.status .big.warn{color:var(--jam)}.status .big.bad{color:var(--bad)}
+.status .desc{font-size:14px;color:var(--muted);max-width:52ch}
+.gauge{position:relative;height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;background:var(--jam);width:0;transition:width .15s}
+.gauge .mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.8}
+.gauge-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--dim)}
+.meter{display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--panel);border-radius:8px}
+.meter .mrow{display:grid;grid-template-columns:72px minmax(0,1fr) 84px;align-items:center;gap:10px;font-size:12px}
+.meter .mrow .nm{color:var(--muted)}
+.meter .mrow .val{text-align:right;color:var(--text)}
+.meter .bar{position:relative;height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.meter .bar .f{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:6px;transition:width .12s}
+.meter .bar .f.s{background:var(--sig)}.meter .bar .f.j{background:var(--jam)}.meter .bar .f.a{background:var(--ok);transition:none}
+.meter .bar .smin{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--bad);opacity:.9}
+.meter .scale{display:grid;grid-template-columns:72px minmax(0,1fr) 84px;font-size:10px;color:var(--dim)}
+.meter .scale .t{display:flex;justify-content:space-between}
+.playrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.playrow button{height:44px;padding:0 20px;border-radius:9px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.playrow button.primary{background:var(--ok);color:var(--onsig);border-color:var(--ok);font-weight:700}
+.playrow .src{font-size:12px;color:var(--dim)}
+.log{display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--panel);border-radius:8px}
+.log .lrow{display:grid;grid-template-columns:76px minmax(0,1fr) 110px;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;border:1px solid var(--line);font-size:13px;transition:opacity .2s}
+.log .lrow .tag{font-size:12px;color:var(--dim)}
+.log .lrow .st{text-align:right;font-size:12px;color:var(--dim)}
+.log .lrow.live{border-color:var(--ok)}
+.log .lrow.live .st{color:var(--ok);font-weight:700}
+.log .lrow.fakeOn{border-color:var(--jam);background:rgba(230,184,74,.08)}
+.log .lrow.fakeOn .tag{color:var(--jam);font-weight:700}
+.log .chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-top:2px}
+canvas{width:100%;height:120px;display:block;border-radius:8px;background:var(--panel)}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:720px){.twocol{grid-template-columns:1fr}}
+.files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;font-size:12px;color:var(--dim)}
+@media (max-width:720px){.files{grid-template-columns:1fr}}
+.files label{display:flex;flex-direction:column;gap:4px}
+.files input{font-size:12px;color:var(--muted)}
+.eq{padding:12px;background:var(--card);border-radius:8px;font-size:13px;line-height:1.9;overflow-x:auto}
+.eq .k{color:var(--dim);font-size:12px}
+.eq .s{color:var(--sig)}.eq .j{color:var(--jam)}
+.eq .r{font-weight:500}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.res div{padding:10px 12px;background:var(--card);border-radius:8px;display:flex;flex-direction:column;gap:2px}
+.res span:first-child{font-size:11px;color:var(--dim)}
+.res span:last-child{font-size:19px}
+.lesson{margin:auto 0 0;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.6;color:var(--muted)}
+.lesson strong{color:var(--text)}
+.spec{width:100%;height:auto;display:block}
+.map{width:100%;height:auto;display:block;border-radius:8px;background:var(--panel)}
+.map text{font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.map .mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+footer{padding:14px 24px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>전자전 중 EA의 위험성</h1>
+    <div class="sub">통신 음성 재밍 시연 · 링크 방정식 기반</div>
+  </div>
+  <div class="seg" role="group" aria-label="재머와 대상 선택">
+    <span class="lbl">재머</span>
+    <button id="mNoise" aria-pressed="true">잡음</button>
+    <button id="mDecep" aria-pressed="false">기만</button>
+    <span class="lbl">대상</span>
+    <button aria-pressed="true">통신</button>
+    <a href="02-gnss.html">GNSS</a>
+    <a href="03-ppi.html">PPI</a>
+    <a href="04-sar.html">SAR</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="params" aria-label="파라미터">
+    <h2>파라미터</h2>
+    <div class="group sig">통신 링크 (피해 측)</div>
+    <div class="field">
+      <div class="row"><span>대역 (주파수 f) · 변조는 대역에 따라 자동</span><output id="oF">150 MHz · FM</output></div>
+      <div class="pills" id="band">
+        <button data-f="10e6" data-m="AM" aria-pressed="false">HF 10 MHz · AM</button>
+        <button data-f="150e6" data-m="FM" aria-pressed="true">VHF 150 MHz · FM</button>
+        <button data-f="400e6" data-m="FM" aria-pressed="false">UHF 400 MHz · FM</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="row"><label for="pt">송신 출력 P<sub>t</sub></label><output id="oPt">10 W</output></div>
+      <input id="pt" type="range" min="-3" max="2" step="0.01" value="0.7">
+    </div>
+    <div class="field">
+      <div class="row"><label for="g">송·수신 안테나 이득 G<sub>t</sub>, G<sub>r</sub></label><output id="oG">2 dBi</output></div>
+      <input id="g" type="range" min="0" max="15" step="1" value="0">
+    </div>
+    <div class="field">
+      <div class="row"><label for="rs">송신기–수신기 거리 R<sub>s</sub></label><span class="unit"><input id="rsN" type="number" min="1" max="300" step="1" value="200" aria-label="송신기와 수신기 거리, km">km</span></div>
+      <input id="rs" type="range" min="1" max="300" step="1" value="200">
+    </div>
+    <div class="field">
+      <div class="row"><label for="bs">신호 대역폭 B<sub>s</sub></label><output id="oBs">25 kHz</output></div>
+      <input id="bs" type="range" min="5" max="200" step="5" value="25">
+    </div>
+
+    <div class="group jam">재머 (공격 측)</div>
+    <div class="field jamr">
+      <div class="row"><label for="pj">재머 출력 P<sub>j</sub></label><output id="oPj">50 W</output></div>
+      <input id="pj" type="range" min="-3" max="3" step="0.01" value="0.7">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="gj">재머 안테나 이득 G<sub>j</sub></label><output id="oGj">6 dBi</output></div>
+      <input id="gj" type="range" min="0" max="20" step="1" value="6">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="rj">재머–수신기 거리 R<sub>j</sub></label><span class="unit"><input id="rjN" type="number" min="1" max="500" step="1" value="150" aria-label="재머와 수신기 거리, km">km</span></div>
+      <input id="rj" type="range" min="1" max="300" step="1" value="150">
+    </div>
+    <div class="field jamr" id="bjField">
+      <div class="row"><label for="bj">재밍 대역폭 B<sub>j</sub></label><output id="oBj">100 kHz</output></div>
+      <input id="bj" type="range" min="5" max="2000" step="5" value="100">
+    </div>
+    <div class="field jamr" id="fakeNote" hidden style="font-size:12px;color:var(--dim);line-height:1.6">기만 재머는 교신과 같은 채널·대역폭으로 가짜 음성을 송신합니다 (B<sub>j</sub> = B<sub>s</sub>). 잡음 재밍과 달리 대역폭 손실이 없습니다.</div>
+  </aside>
+
+  <main>
+    <section class="card" aria-label="상황도">
+      <div class="head"><span>상황도 — 송신기 · 수신기 · 재머</span><span class="mono" id="mapTag"></span></div>
+      <svg class="map" viewBox="0 0 900 360" role="img" aria-label="송신기, 수신기, 재머의 위치와 거리">
+        <defs>
+          <pattern id="grid" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0 L0 0 0 5" fill="none" stroke="var(--line)" stroke-width="0.6" stroke-opacity=".7"></path></pattern>
+          <pattern id="grid5" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0 L0 0 0 25" fill="none" stroke="var(--line2)" stroke-width="1"></path></pattern>
+          <g id="ant"><line x1="0" y1="0" x2="0" y2="-30" stroke="currentColor" stroke-width="2"></line><path d="M-11 0 L11 0 L0 -30 Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M-12 -40 A14 14 0 0 1 12 -40" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M-19 -46 A22 22 0 0 1 19 -46" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".6"></path><circle cx="0" cy="-33" r="2.5" fill="currentColor"></circle></g>
+        </defs>
+        <rect width="900" height="360" fill="url(#grid)"></rect>
+        <rect width="900" height="360" fill="url(#grid5)"></rect>
+        <g aria-hidden="true"><rect x="20" y="326" width="50" height="6" fill="var(--text)"></rect><rect x="70" y="326" width="50" height="6" fill="none" stroke="var(--text)" stroke-width="1"></rect><rect x="120" y="326" width="50" height="6" fill="var(--text)"></rect><text x="20" y="320" fill="var(--dim)" font-size="11" class="mono">0</text><text x="70" y="320" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono">50</text><text x="120" y="320" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono">100</text><text x="170" y="320" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono">150 km</text><text x="20" y="348" fill="var(--dim)" font-size="11">작은 격자 1칸 = 5 km · 큰 격자 1칸 = 25 km</text></g>
+        <circle id="mComm" cx="0" cy="0" r="0" fill="var(--sig)" fill-opacity=".06" stroke="var(--sig)" stroke-width="1.5" stroke-opacity=".75"></circle>
+        <text id="mCommTxt" x="0" y="0" fill="var(--sig)" font-size="12" text-anchor="middle"></text>
+        <circle id="mRjRing" cx="780" cy="205" r="0" fill="none" stroke="var(--dim)" stroke-width="1" stroke-dasharray="3 5" stroke-opacity=".6"></circle>
+        <circle id="mNeed" cx="780" cy="205" r="0" fill="var(--jam)" fill-opacity=".07" stroke="var(--jam)" stroke-width="1.5" stroke-dasharray="7 6" stroke-opacity=".8"></circle>
+        <text id="mNeedTxt" x="430" y="200" fill="var(--jam)" font-size="12" text-anchor="middle" opacity=".9"></text>
+        <line id="mSig" x1="0" y1="0" x2="0" y2="0" stroke="var(--sig)" stroke-width="3"></line>
+        <line id="mJam" x1="0" y1="0" x2="0" y2="0" stroke="var(--jam)" stroke-width="3" stroke-dasharray="10 6"></line>
+        <text id="mSigTxt" x="0" y="0" fill="var(--sig)" font-size="12" text-anchor="middle" class="mono"></text>
+        <text id="mJamTxt" x="0" y="0" fill="var(--jam)" font-size="12" text-anchor="middle" class="mono"></text>
+        <g id="gTx" style="color:var(--sig)"><use href="#ant"></use><text y="18" fill="var(--text)" font-size="13" text-anchor="middle" font-weight="700">송신기</text><text id="gTxSub" y="34" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono"></text></g>
+        <g id="gRx" style="color:var(--ok)"><use href="#ant"></use><text y="18" fill="var(--text)" font-size="13" text-anchor="middle" font-weight="700">수신기</text><text id="gRxSub" y="34" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono"></text></g>
+        <g id="gJm" style="color:var(--jam);cursor:grab"><circle r="34" cy="-18" fill="transparent"></circle><use href="#ant"></use><text y="18" fill="var(--text)" font-size="13" text-anchor="middle" font-weight="700">재머 (끌어서 이동)</text><text id="gJmSub" y="34" fill="var(--dim)" font-size="11" text-anchor="middle" class="mono"></text></g>
+      </svg>
+    </section>
+
+    <section class="card hero" aria-live="polite">
+      <div class="head"><span>수신기에서 들리는 소리</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="modeTag">잡음 재밍</span><span class="pills" id="dmode" hidden style="gap:4px"><button data-d="burst" aria-pressed="true" style="padding:0 10px;height:28px;flex:none">좌표 구간만 기만</button><button data-d="cont" aria-pressed="false" style="padding:0 10px;height:28px;flex:none">연속 기만</button></span></span></div>
+      <div class="playrow">
+        <div class="toggle" style="margin:0;flex:0 0 auto">
+          <button id="jOff" aria-pressed="true" style="padding:0 18px">재머 OFF</button>
+          <button id="jOn" aria-pressed="false" style="padding:0 18px">재머 ON</button>
+        </div>
+        <button class="primary" id="play">재생</button>
+        <button id="stop">정지</button>
+      </div>
+      <div class="status">
+        <div class="big ok" id="stBig">정상</div>
+        <div class="desc" id="stDesc">재머가 꺼져 있습니다. 교신이 그대로 들립니다.</div>
+      </div>
+      <div class="meter" aria-label="수신 전력 미터">
+        <div class="mrow"><span class="nm">교신 신호 S</span><div class="bar"><div class="f s" id="mS"></div><div class="smin" id="mSmin"></div></div><span class="val mono" id="mSv">—</span></div>
+        <div class="mrow"><span class="nm" id="mJnm">잡음 재머 J</span><div class="bar"><div class="f j" id="mJ"></div></div><span class="val mono" id="mJv">—</span></div>
+        <div class="mrow"><span class="nm">잡음 바닥 N</span><div class="bar"><div class="f" id="mN" style="background:var(--dim)"></div></div><span class="val mono" id="mNv">—</span></div>
+        <div class="mrow" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--line)"><span class="nm">SNR = S − N</span><span class="mono" id="snrTxt" style="color:var(--muted)"></span><span class="val mono" id="snrV">—</span></div>
+        <div class="mrow"><span class="nm">SINR = S − (N+J)</span><span class="mono" id="sinrTxt" style="color:var(--muted)"></span><span class="val mono" id="sinrV" style="font-size:16px;font-weight:700">—</span></div>
+        <div class="mrow"><span class="nm">스피커 출력</span><div class="bar"><div class="f a" id="mA"></div></div><span class="val mono" id="mAv">정지</span></div>
+        <div class="scale"><span></span><div class="t"><span>−130 dBm</span><span>−100</span><span>−70</span><span>−40</span><span>−10 dBm</span></div><span style="text-align:right">빨간 선 = 수신 감도</span></div>
+      </div>
+      <div>
+        <div class="gauge" aria-hidden="true"><div class="fill" id="gFill"></div><div class="mark" id="gMark"></div></div>
+        <div class="gauge-lbl"><span>J/S −30 dB</span><span id="gThr">임계값</span><span>+30 dB</span></div>
+      </div>
+      <div class="log" id="log" aria-label="수신 교신 내용">
+        <div class="lrow" id="lReal"><span class="tag">통제소</span><span>알파 원, 여기는 통제소. 집결 좌표 송신한다. 좌표, <span id="lCoord" class="mono" style="font-weight:700">CH 12345 12345</span>. 수신 여부 보고하라.</span><span class="st" id="lRealSt"></span></div>
+        <div class="lrow" id="lBurst" hidden><span class="tag" id="lBurstTag">재머</span><span>좌표를 말하는 순간에만 <span class="mono" style="font-weight:700">CH 23456 23456</span>을 강한 세기로 짧게 송신</span><span class="st" id="lBurstSt"></span></div>
+        <div class="lrow" id="lFake" hidden><span class="tag" id="lFakeTag">통제소</span><span>알파 원, 여기는 통제소. 명령 변경. 이동을 중지하고 현 위치에서 대기하라.</span><span class="st" id="lFakeSt"></span></div>
+        <label class="chk" id="revealWrap" hidden><input type="checkbox" id="reveal"> 발표자용: 가짜 송신을 노란색으로 표시 (수신자 화면에서는 둘 다 “통제소”로 보임)</label>
+        <div id="assume" hidden style="font-size:12px;color:var(--dim);line-height:1.6;padding-top:6px;border-top:1px solid var(--line)">가정: 재머는 채널을 감청하여 교신 형식을 알고 있고, 예고어(“좌표,”) 직후 좌표 구간에 시간 동기를 맞춰 반응합니다(반응형 재밍, look-through). 주파수 도약·암호화 통신에서는 이 가정이 성립하지 않습니다.</div>
+      </div>
+      <div class="playrow">
+        <span class="src" id="srcTag">음원: 브라우저 음성 합성(TTS)으로 위 교신문을 읽습니다. 파일을 올리면 그 음원으로 바뀝니다.</span>
+      </div>
+      <canvas id="wave" width="900" height="120" aria-label="수신 파형"></canvas>
+      <div class="files">
+        <label>진짜 교신 음성 파일 (WAV/MP3)<input type="file" id="fReal" accept="audio/*"></label>
+        <label id="fFakeWrap" hidden>가짜 지시 음성 파일 (기만용)<input type="file" id="fFake" accept="audio/*"></label>
+      </div>
+    </section>
+
+    <div class="twocol">
+      <section class="card">
+        <div class="head"><span>수신 스펙트럼</span><span id="specTag" class="mono">f<sub>c</sub> = 150 MHz</span></div>
+        <svg class="spec" viewBox="0 0 400 190" role="img" aria-label="신호와 재밍의 수신 전력 스펙트럼">
+          <line x1="36" y1="160" x2="390" y2="160" stroke="var(--line2)"></line>
+          <line x1="36" y1="14" x2="36" y2="160" stroke="var(--line2)"></line>
+          <text x="30" y="20" fill="var(--dim)" font-size="10" text-anchor="end" class="mono">dBm</text>
+          <text x="213" y="178" fill="var(--dim)" font-size="10" text-anchor="middle" class="mono">주파수</text>
+          <rect id="jRect" x="100" y="160" width="226" height="0" fill="var(--jam)" opacity=".35"></rect>
+          <rect id="sRect" x="193" y="160" width="40" height="0" fill="var(--sig)" opacity=".85"></rect>
+          <text id="jTxt" x="330" y="40" fill="var(--jam)" font-size="11" class="mono">J</text>
+          <text id="sTxt" x="240" y="40" fill="var(--sig)" font-size="11" class="mono">S</text>
+        </svg>
+      </section>
+      <section class="card">
+        <div class="head"><span>효과가 나는 조건</span><span class="mono" id="condTag"></span></div>
+        <div class="eq">
+          <div class="k">현재 재머 거리에서 효과를 내려면</div>
+          <div>필요 재머 출력 P<sub>j</sub> ≥ <span class="j r" id="needPj">—</span></div>
+          <div class="k" style="margin-top:6px">현재 재머 출력으로 효과를 내려면</div>
+          <div>재머 거리 R<sub>j</sub> ≤ <span class="j r" id="needRj">—</span></div>
+        </div>
+        <div class="lesson" style="margin-top:0"><strong>잡음이든 기만이든 결과는 같습니다.</strong> 수신기에서 J/S가 임계값을 넘어야 효과가 나고, J/S를 키우는 방법은 재머 출력을 올리거나 거리를 줄이는 것뿐입니다. 왼쪽 두 슬라이더로 확인해 보세요.</div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="eqs" aria-label="수식">
+    <h2>수식</h2>
+    <div>
+      <div class="group sig" style="margin-bottom:8px">통신 링크 방정식 (단방향)</div>
+      <div class="eq mono">
+        <div>P<sub>r</sub> = P<sub>t</sub> G<sub>t</sub> G<sub>r</sub> (λ/4π·1km)² · (1km/R<sub>s</sub>)³</div>
+        <div class="k" id="eqS"></div>
+        <div class="r">P<sub>r</sub> = <span id="prOut">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group jam" style="margin-bottom:8px">재머 수신 전력 (단방향)</div>
+      <div class="eq mono">
+        <div id="eqJHead">P<sub>J</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> (λ/4π·1km)² · (1km/R<sub>j</sub>)³ · min(1, B<sub>s</sub>/B<sub>j</sub>)</div>
+        <div class="k" id="eqJ"></div>
+        <div class="r">P<sub>J</sub> = <span id="pjOut">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group" style="margin-bottom:8px;color:var(--dim)">결과</div>
+      <div class="res mono">
+        <div><span>J/S = P<sub>J</sub> − P<sub>r</sub></span><span id="jsOut">—</span></div>
+        <div><span>임계값 (<span id="thrMod">FM</span>)</span><span id="thrOut">—</span></div>
+        <div><span>신호 수신 전력</span><span id="prOut2">—</span></div>
+        <div><span>재머 수신 전력</span><span id="pjOut2">—</span></div>
+        <div><span>수신 감도 S<sub>min</sub></span><span id="sminOut">—</span></div>
+        <div><span>통신 가능 거리</span><span id="rcommOut">—</span></div>
+        <div><span>SNR (재머 없음)</span><span id="snrOut">—</span></div>
+        <div><span>SINR (재머 포함)</span><span id="sinrOut">—</span></div>
+      </div>
+    </div>
+    <p class="lesson" id="thrNote"></p>
+  </aside>
+</div>
+
+<footer>
+  <span>모든 제원은 교육용 가상 값이며 실제 장비와 무관합니다. 전파 모델: 1 km까지 자유공간, 그 너머는 지상 전파 손실(R³)을 적용한 간단한 경로손실 모델입니다.</span>
+  <span>시연 버전 v0.2 · 통신 모듈</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const S = { f:150e6, pt:5, g:0, rs:200, bs:25, mod:'FM', pj:5, gj:6, rj:150, bj:100, n:3, on:false, mode:'noise', dmode:'burst', jang:(180-16)*Math.PI/180 };
+
+  // ---------- 물리 모델 ----------
+  const dB = x => 10*Math.log10(x);
+  function model(){
+    const lam = 3e8/S.f;
+    // 전파 손실: 1 km까지는 자유공간, 그 너머는 손실지수 n (지상 이동통신 2.5~4)
+    const L1 = 20*Math.log10(lam/(4*Math.PI*1000)); // 1 km 기준 이득(음수)
+    const fsl = R => L1 - 10*S.n*Math.log10(Math.max(R,0.01)); // dB, R in km
+    const Pr = dB(S.pt*1000) + 2*S.g + fsl(S.rs);
+    const bwTerm = S.mode==='decep' ? 0 : dB(Math.min(1, S.bs/S.bj)); // 기만: 가짜 음성은 교신 대역 안에 전력을 집중
+    const PJ = dB(S.pj*1000) + S.gj + S.g + fsl(S.rj) + bwTerm;
+    const JS = S.on ? PJ - Pr : -Infinity;
+    // 임계값: AM은 0 dB(동전력), FM은 포획 효과로 +6 dB
+    const thr = S.mod==='FM' ? 6 : 0;
+    const lo  = S.mod==='FM' ? -6 : -10; // 이 아래면 정상
+    // 필요 조건
+    const needPj = S.pj * Math.pow(10, (thr - (PJ - Pr))/10);           // W
+    const Cj = dB(S.pj*1000) + S.gj + S.g + L1 + bwTerm; // PJ at 1 km
+    const needRj = Math.pow(10, (Cj - (Pr + thr))/(10*S.n));              // km
+    // 수신 감도: 열잡음(-174 dBm/Hz) + 대역폭 + 잡음지수 6 dB + 필요 SNR 12 dB
+    const Smin = -174 + dB(S.bs*1000) + 6 + 12;
+    const N = -174 + dB(S.bs*1000) + 6;                 // 수신기 잡음 바닥 (dBm)
+    const SNR = Pr - N;                                  // 재머 없을 때
+    const totalI = S.on ? 10*Math.log10(Math.pow(10,N/10) + Math.pow(10,PJ/10)) : N;
+    const SINR = Pr - totalI;                            // 잡음 + 재머 포함
+    const Rcomm = Math.pow(10, (dB(S.pt*1000) + 2*S.g + L1 - Smin)/(10*S.n)); // km
+    return {lam, Pr, PJ, JS, thr, lo, needPj, needRj, bwTerm, Smin, Rcomm, N, SNR, SINR};
+  }
+
+  // ---------- 오디오 ----------
+  let ctx=null, master=null, analyser=null, gVoice=null, gNoise=null, gFake=null, lp=null;
+  let bufReal=null, bufFake=null, srcVoice=null, srcNoise=null, srcFake=null, playing=false;
+  let userReal=null, userFake=null;
+  // 브라우저 TTS: 파일이 없을 때 진짜/가짜 교신문을 실제 말로 읽는다
+  const REAL_PRE   = '알파 원, 여기는 통제소. 집결 좌표 송신한다. 좌표,';
+  const REAL_COORD = '씨 에이치, 일 이 삼 사 오, 일 이 삼 사 오.';
+  const REAL_POST  = '수신 여부 보고하라.';
+  const FAKE_COORD = '씨 에이치, 이 삼 사 오 육, 이 삼 사 오 육.';
+  const REAL_MSG = REAL_PRE+' '+REAL_COORD+' '+REAL_POST;
+  const FAKE_MSG = '알파 원, 여기는 통제소. 명령 변경. 이동을 중지하고 현 위치에서 대기하라.';
+  const hasTTS = 'speechSynthesis' in window;
+  const tts = { real:{on:false, vol:0, pitch:1.0, msg:REAL_MSG}, fake:{on:false, vol:0, pitch:0.8, msg:FAKE_MSG} };
+  let ttsTimer=null, ttsRestart=null;
+  function koVoice(i){ const vs = speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang)); return vs.length ? vs[i % vs.length] : null; }
+  const keepUtt = []; // Chrome은 참조가 없는 utterance를 수거해 onend가 안 오는 경우가 있어 참조를 보관한다
+  const ttsUsable = () => hasTTS && speechSynthesis.getVoices().length > 0;
+  function speakLoop(which){
+    const s = tts[which]; if(!playing || !s.on || s.vol < 0.03) return;
+    const u = new SpeechSynthesisUtterance(s.msg); u.lang='ko-KR'; u.volume=Math.min(1,s.vol); u.pitch=s.pitch; u.rate=1.0;
+    const v = koVoice(which==='fake'?1:0); if(v) u.voice = v;
+    let done=false; const fin = () => { if(done) return; done=true; if(playing && s.on) ttsTimer = setTimeout(()=>speakLoop(which), 900); };
+    u.onend = fin; u.onerror = fin; keepUtt.push(u); if(keepUtt.length>12) keepUtt.shift();
+    setTimeout(fin, 1500 + s.msg.length*220);
+    speechSynthesis.speak(u);
+  }
+  // 좌표 구간 기만: 진짜 교신을 읽다가 좌표를 말하는 순간에만 재머가 끼어든다
+  let burst=false, burstState='real', lastCoord='real', seqTimer=null;
+  const burstMode = () => S.mode==='decep' && S.dmode==='burst';
+  function say(text, which, vol, cb){
+    const u = new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.volume=Math.min(1,Math.max(0,vol)); u.pitch = which==='fake'?0.8:1.0; u.rate=1.0;
+    const v = koVoice(which==='fake'?1:0); if(v) u.voice=v;
+    let done=false; const fin = () => { if(done) return; done=true; if(playing && cb) cb(); };
+    u.onend = fin; u.onerror = fin;
+    keepUtt.push(u); if(keepUtt.length>12) keepUtt.shift();
+    // onend가 오지 않는 환경 대비: 글자 수로 추정한 시간 뒤에 강제 진행
+    setTimeout(fin, 1500 + text.length*220);
+    speechSynthesis.speak(u);
+  }
+  function burstSeq(){
+    if(!playing || !burstMode()) return;
+    burst=false; render();
+    say(REAL_PRE,'real',1,()=>{
+      const m = model();
+      const captured = S.on && m.JS >= m.thr, mixed = S.on && !captured && m.JS >= m.lo;
+      burst = true; burstState = captured ? 'fake' : mixed ? 'mixed' : 'real'; lastCoord = burstState; render();
+      const after = () => { burst=false; render(); say(REAL_POST,'real',1, () => { seqTimer = setTimeout(burstSeq, 1500); }); };
+      if(captured) say(FAKE_COORD,'fake',1,after);
+      else say(REAL_COORD,'real',1,after);
+    });
+  }
+  function restartTTS(){
+    if(!hasTTS) return;
+    clearTimeout(ttsTimer); speechSynthesis.cancel();
+    // 두 음성이 같이 켜지면 어긋나게 시작해 겹쳐 들리게
+    if(tts.real.on) speakLoop('real');
+    if(tts.fake.on) ttsTimer = setTimeout(()=>speakLoop('fake'), tts.real.on ? 1200 : 0);
+  }
+
+  function ensureCtx(){
+    if(ctx) return;
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0.9;
+    analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
+    lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 3400; // 음성 대역
+    gVoice = ctx.createGain(); gNoise = ctx.createGain(); gFake = ctx.createGain();
+    gVoice.connect(master); gNoise.connect(master); gFake.connect(master);
+    master.connect(lp); lp.connect(analyser); analyser.connect(ctx.destination);
+  }
+
+  // 합성 교신음: 모음 포먼트 + 음절 리듬 (파일이 없을 때의 대체 음원)
+  function synthVoice(seed, dur, f0){
+    const sr = ctx.sampleRate, n = Math.floor(sr*dur), out = ctx.createBuffer(1, n, sr), d = out.getChannelData(0);
+    let r = seed; const rnd = () => (r = (r*1664525+1013904223)>>>0)/4294967296;
+    const vowels = [[730,1090],[270,2290],[300,870],[530,1840],[640,1190]];
+    let t=0, i=0;
+    while(i<n){
+      const syl = 0.12+rnd()*0.16, gap = rnd()<0.18 ? 0.25+rnd()*0.4 : 0.03+rnd()*0.05;
+      const v = vowels[Math.floor(rnd()*vowels.length)], pitch = f0*(0.9+rnd()*0.25);
+      const ns = Math.floor(syl*sr);
+      for(let k=0;k<ns && i<n;k++,i++){
+        const tt = k/sr, env = Math.sin(Math.PI*k/ns);
+        let s=0;
+        for(let h=1;h<=14;h++){
+          const fh = pitch*h, w1 = Math.exp(-Math.pow((fh-v[0])/110,2)), w2 = 0.6*Math.exp(-Math.pow((fh-v[1])/180,2));
+          s += (w1+w2+0.05/h)*Math.sin(2*Math.PI*fh*tt + h);
+        }
+        d[i] = 0.18*env*s;
+      }
+      i += Math.floor(gap*sr);
+    }
+    return out;
+  }
+  function noiseBuffer(dur){
+    const sr=ctx.sampleRate, n=Math.floor(sr*dur), b=ctx.createBuffer(1,n,sr), d=b.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*0.35;
+    return b;
+  }
+  function loop(buf, gain){
+    const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.connect(gain); s.start(); return s;
+  }
+  function start(){
+    ensureCtx(); if(ctx.state==='suspended') ctx.resume();
+    stop();
+    const useTTS = ttsUsable();
+    bufReal = userReal || (useTTS ? null : synthVoice(7, 12, 120));
+    bufFake = userFake || (useTTS ? null : synthVoice(41, 12, 165));
+    if(bufReal) srcVoice = loop(bufReal, gVoice);
+    if(bufFake) srcFake  = loop(bufFake, gFake);
+    srcNoise = loop(noiseBuffer(4), gNoise);
+    tts.real.on = !bufReal; tts.fake.on = !bufFake;
+    if(!useTTS && !userReal) $('srcTag').textContent = '음원: 이 브라우저에 음성 합성이 없어 내장 합성음을 사용합니다. 좌표 구간 기만은 TTS 또는 음성 파일이 있어야 동작합니다.';
+    playing = true;
+    // speechSynthesis.cancel() 직후 speak()는 무시되는 경우가 있어 잠깐 뒤에 시작
+    if(useTTS && tts.real.on && burstMode()){ applyGains(); seqTimer = setTimeout(burstSeq, 150); }
+    else if(useTTS && (tts.real.on || tts.fake.on)){ applyGains(); const g = gains(model()); tts.real.vol = Math.min(1,g.voice); tts.fake.vol = Math.min(1,g.fake); ttsRestart = setTimeout(restartTTS, 150); }
+    else { applyGains(true); }
+    draw();
+  }
+  function stop(){
+    [srcVoice,srcNoise,srcFake].forEach(s=>{ if(s){ try{s.stop();}catch(e){} } });
+    srcVoice=srcNoise=srcFake=null; playing=false;
+    tts.real.on = tts.fake.on = false; clearTimeout(ttsTimer); clearTimeout(ttsRestart); clearTimeout(seqTimer); burst=false; if(hasTTS) speechSynthesis.cancel();
+    if($('mA')){ $('mA').style.width='0%'; $('mAv').textContent='정지'; }
+  }
+  // J/S → 각 음원의 이득 (교육용 근사)
+  function gains(m){
+    if(burstMode()){
+      // 좌표 구간 기만: 평소엔 진짜 교신만, 좌표 구간에서 겹침 상태면 잡음으로 불명확하게
+      return {voice:1, noise:(burst && burstState==='mixed') ? 0.9 : 0, fake:0};
+    }
+    const js = S.on ? m.JS : -60;
+    const lin = Math.min(Math.pow(10, js/20), 6);
+    let voice=1, jam=0;
+    if(S.mod==='AM'){ jam = lin; }
+    else {
+      // FM 포획 효과: -6 dB 아래면 간섭 억제, +6 dB 위면 재머가 채널 장악
+      if(js < -6) jam = 0.3*lin;
+      else if(js > 6){ voice = 0; jam = 1; }
+      else { const a=(js+6)/12; voice = 1-a; jam = 0.3*lin*(1-a) + 1*a; }
+    }
+    return S.mode==='noise' ? {voice, noise:jam, fake:0} : {voice, noise:0, fake:jam};
+  }
+  function applyGains(force){
+    if(!ctx) return;
+    const g = gains(model()), t = ctx.currentTime;
+    gVoice.gain.setTargetAtTime(g.voice, t, 0.05);
+    gNoise.gain.setTargetAtTime(g.noise, t, 0.05);
+    gFake.gain.setTargetAtTime(g.fake, t, 0.05);
+    // TTS 음성은 재생 중 음량을 바꿀 수 없어, 차이가 커지면 새 음량으로 다시 읽는다
+    if(playing && hasTTS && !burstMode() && (tts.real.on || tts.fake.on)){
+      const nv = Math.min(1,g.voice), nf = Math.min(1,g.fake);
+      const changed = force || Math.abs(nv-tts.real.vol) > 0.15 || Math.abs(nf-tts.fake.vol) > 0.15 || ((nv<0.03) !== (tts.real.vol<0.03)) || ((nf<0.03) !== (tts.fake.vol<0.03));
+      tts.real.vol = nv; tts.fake.vol = nf;
+      if(changed){ clearTimeout(ttsRestart); ttsRestart = setTimeout(restartTTS, force ? 0 : 400); }
+    }
+  }
+  // 파형
+  const cv = $('wave'), cx = cv.getContext('2d');
+  function draw(){
+    if(!playing) return;
+    const data = new Uint8Array(analyser.fftSize); analyser.getByteTimeDomainData(data);
+    const cs = getComputedStyle(document.documentElement);
+    cx.fillStyle = cs.getPropertyValue('--panel'); cx.fillRect(0,0,cv.width,cv.height);
+    cx.strokeStyle = S.on && S.mode==='noise' ? cs.getPropertyValue('--jam') : cs.getPropertyValue('--sig');
+    cx.lineWidth = 1.5; cx.beginPath();
+    for(let i=0;i<data.length;i++){ const x=i/data.length*cv.width, y=data[i]/255*cv.height; i?cx.lineTo(x,y):cx.moveTo(x,y); }
+    cx.stroke();
+    // 스피커 출력 레벨: 실제 들리는 소리의 크기
+    let sum=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+    const rms = Math.sqrt(sum/data.length), lvl = Math.max(0, Math.min(100, (20*Math.log10(rms+1e-6)+50)/50*100));
+    $('mA').style.width = lvl+'%'; $('mAv').textContent = (20*Math.log10(rms+1e-6)).toFixed(0)+' dBFS';
+    requestAnimationFrame(draw);
+  }
+  function loadFile(input, cb){
+    const f = input.files && input.files[0]; if(!f) return;
+    ensureCtx();
+    f.arrayBuffer().then(ab => ctx.decodeAudioData(ab)).then(b => { cb(b); $('srcTag').textContent = '음원: 올린 파일 사용 중'; if(playing) start(); })
+      .catch(()=>{ $('srcTag').textContent = '음원: 파일을 읽을 수 없어 내장 합성 음성을 사용합니다'; });
+  }
+
+  // ---------- 화면 갱신 ----------
+  const fmtW = w => w>=1000 ? (w/1000).toFixed(1)+' kW' : w>=10 ? w.toFixed(0)+' W' : w>=1 ? w.toFixed(1)+' W' : w>=0.01 ? (w*1000).toFixed(0)+' mW' : (w*1000).toFixed(1)+' mW';
+  const fmtKm = k => k>=100 ? k.toFixed(0)+' km' : k.toFixed(1)+' km';
+  const fmtHz = f => f>=1e6 ? (f/1e6).toFixed(0)+' MHz' : (f/1e3).toFixed(0)+' kHz';
+  const sci = x => { const e=Math.floor(Math.log10(x)); return (x/Math.pow(10,e)).toFixed(2)+'×10^'+e; };
+
+  function render(){
+    const m = model();
+    $('oF').textContent=fmtHz(S.f)+' · '+S.mod; $('oPt').textContent=fmtW(S.pt); $('oG').textContent=S.g+' dBi (×'+Math.pow(10,S.g/10).toFixed(1)+')';
+    $('rsN').value=S.rs; $('oBs').textContent=S.bs+' kHz';
+    $('oPj').textContent=fmtW(S.pj); $('oGj').textContent=S.gj+' dBi (×'+Math.pow(10,S.gj/10).toFixed(1)+')'; $('rjN').value=S.rj; $('oBj').textContent=S.bj+' kHz';
+    $('specTag').innerHTML='f<sub>c</sub> = '+fmtHz(S.f);
+    $('modeTag').textContent = S.mode==='noise' ? '잡음 재밍' : '기만 재밍'; $('mJnm').textContent = S.mode==='noise' ? '잡음 재머 J' : '가짜 송신 J';
+
+    // 수식
+    const gl = Math.pow(10,S.g/10).toFixed(1), gjl = Math.pow(10,S.gj/10).toFixed(1);
+    const decep = S.mode==='decep';
+    $('bjField').hidden = decep; $('fakeNote').hidden = !decep; $('fFakeWrap').hidden = !decep; $('revealWrap').hidden = !decep;
+    $('eqJHead').innerHTML = decep
+      ? 'P<sub>J</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> (λ/4π·1km)² · (1km/R<sub>j</sub>)³'
+      : 'P<sub>J</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> (λ/4π·1km)² · (1km/R<sub>j</sub>)³ · min(1, B<sub>s</sub>/B<sub>j</sub>)';
+    $('eqS').innerHTML = '= <span class="s">'+fmtW(S.pt)+'</span> · <span class="s">'+gl+'</span> · <span class="s">'+gl+'</span> · ('+m.lam.toFixed(2)+'/4π·1000)² · (1/<span class="s">'+S.rs+'</span>)³';
+    $('eqJ').innerHTML = '= <span class="j">'+fmtW(S.pj)+'</span> · <span class="j">'+gjl+'</span> · '+gl+' · ('+m.lam.toFixed(2)+'/4π·1000)² · (1/<span class="j">'+S.rj+'</span>)³'+(decep ? '' : ' · <span class="j">'+Math.min(1,S.bs/S.bj).toFixed(2)+'</span>');
+    $('prOut').textContent = m.Pr.toFixed(1)+' dBm'; $('prOut2').textContent = m.Pr.toFixed(1)+' dBm';
+    $('pjOut').textContent = m.PJ.toFixed(1)+' dBm'; $('pjOut2').textContent = (S.on? m.PJ.toFixed(1)+' dBm' : 'OFF');
+    $('sminOut').textContent = m.Smin.toFixed(0)+' dBm';
+    $('rcommOut').textContent = fmtKm(m.Rcomm);
+    $('snrOut').textContent = m.SNR.toFixed(1)+' dB'; $('sinrOut').textContent = m.SINR.toFixed(1)+' dB';
+    $('jsOut').textContent = S.on ? (m.JS>=0?'+':'')+m.JS.toFixed(1)+' dB' : '—';
+    $('thrOut').textContent = (m.thr>=0?'+':'')+m.thr+' dB'; $('thrMod').textContent = S.mod;
+    $('thrNote').innerHTML = S.mod==='FM'
+      ? '<strong>VHF/UHF 전술망은 FM.</strong> 포획 효과 때문에 같은 채널에 들어온 두 신호 중 더 센 쪽이 수신기를 차지합니다. J/S가 −6 dB 아래면 재머가 억제되고, +6 dB를 넘으면 교신 대신 재머만 들립니다.'
+      : '<strong>HF 음성망은 AM(SSB).</strong> 선형 혼합이라 재머 전력이 신호와 같아지는 J/S 0 dB 부근부터 알아듣기 어려워지며, 그 아래에서도 서서히 잡음이 깔립니다.';
+
+    // 조건
+    $('needPj').textContent = fmtW(m.needPj);
+    $('needRj').textContent = fmtKm(m.needRj);
+    $('condTag').textContent = 'J/S ≥ '+(m.thr>=0?'+':'')+m.thr+' dB';
+
+    // 상태
+    const big=$('stBig'), desc=$('stDesc');
+    big.className='big';
+    const outOfRange = S.rs > m.Rcomm;
+    if(outOfRange){ big.classList.add('bad'); big.textContent='통신 불가'; desc.textContent='수신기가 송신기의 통신 가능 거리('+fmtKm(m.Rcomm)+') 밖에 있습니다. 송신 출력을 올리거나 거리를 줄이세요.'; }
+    else if(!S.on){ big.classList.add('ok'); big.textContent='정상'; desc.textContent='재머가 꺼져 있습니다. 교신이 그대로 들립니다.'; }
+    else if(m.JS < m.lo){ big.classList.add('ok'); big.textContent='정상'; desc.textContent = S.mode==='noise' ? '재머 전력이 부족해 잡음이 거의 들리지 않습니다.' : '가짜 음성이 너무 약해 묻힙니다. 수신자는 진짜 교신만 듣습니다.'; }
+    else if(m.JS < m.thr){ big.classList.add('warn'); big.textContent = S.mode==='noise' ? '열화' : '혼신'; desc.textContent = S.mode==='noise' ? '잡음이 섞여 알아듣기 어려워집니다. 재머 출력을 올리거나 거리를 줄이면 두절됩니다.' : '진짜와 가짜 음성이 겹쳐 들립니다. 조금만 더 세지면 가짜 음성이 채널을 차지합니다.'; }
+    else { big.classList.add('bad'); big.textContent = S.mode==='noise' ? '두절' : '장악'; desc.textContent = S.mode==='noise' ? '재머가 임계값을 넘어 교신이 들리지 않습니다.' : (S.dmode==='burst' ? '좌표를 말하는 순간 재머가 끼어들어 가짜 좌표만 들립니다. 나머지 교신은 정상이라 수신자는 의심하지 않습니다.' : '수신기에 가짜 지시만 깨끗하게 들립니다. 수신자는 재밍 중인지 알 수 없습니다.'); }
+
+    // 수신 전력 미터 (−130 ~ −10 dBm)
+    const mp = p => Math.max(0, Math.min(100, (p+130)/120*100));
+    $('mS').style.width = mp(m.Pr)+'%'; $('mSv').textContent = m.Pr.toFixed(1)+' dBm';
+    $('mJ').style.width = (S.on ? mp(m.PJ) : 0)+'%'; $('mJv').textContent = S.on ? m.PJ.toFixed(1)+' dBm' : 'OFF';
+    $('mSmin').style.left = mp(m.Smin)+'%';
+    $('mN').style.width = mp(m.N)+'%'; $('mNv').textContent = m.N.toFixed(1)+' dBm';
+    $('snrV').textContent = m.SNR.toFixed(1)+' dB';
+    $('snrTxt').textContent = m.Pr.toFixed(1)+' − ('+m.N.toFixed(1)+')';
+    $('sinrV').textContent = m.SINR.toFixed(1)+' dB';
+    $('sinrV').style.color = m.SINR >= 12 ? 'var(--ok)' : m.SINR >= 0 ? 'var(--jam)' : 'var(--bad)';
+    $('sinrTxt').textContent = S.on ? m.Pr.toFixed(1)+' − ('+(m.Pr-m.SINR).toFixed(1)+')  · 필요 SNR 12 dB' : '재머 OFF → SNR과 같음 · 필요 SNR 12 dB';
+
+    // 게이지 (−30 ~ +30 dB)
+    const pos = x => Math.max(0,Math.min(100,(x+30)/60*100));
+    $('gFill').style.width = (S.on? pos(m.JS):0)+'%';
+    $('gMark').style.left = pos(m.thr)+'%';
+    $('gThr').textContent = '임계 '+(m.thr>=0?'+':'')+m.thr+' dB';
+
+    // 스펙트럼: −120 dBm → 0 px, −20 dBm → 146 px
+    const h = p => Math.max(0,Math.min(146,(p+120)/100*146));
+    const hs=h(m.Pr), hj=S.on?h(m.PJ):0;
+    const sw = 40, jw = Math.max(sw, Math.min(300, 40*Math.sqrt(S.bj/S.bs)));
+    $('sRect').setAttribute('y',160-hs); $('sRect').setAttribute('height',hs);
+    $('jRect').setAttribute('x',213-jw/2); $('jRect').setAttribute('width',jw); $('jRect').setAttribute('y',160-hj); $('jRect').setAttribute('height',hj);
+    $('sTxt').setAttribute('y',Math.max(24,156-hs)); $('sTxt').textContent='S '+m.Pr.toFixed(0)+' dBm';
+    $('jTxt').setAttribute('y',Math.max(24,156-hj)); $('jTxt').setAttribute('x',Math.min(330,213+jw/2+6)); $('jTxt').textContent = S.on ? 'J '+m.PJ.toFixed(0)+' dBm' : '';
+
+    applyGains();
+    drawMap(m);
+    drawLog(m);
+  }
+
+  // 교신 로그: 수신기에 지금 어느 송신이 들어오는지
+  function drawLog(m){
+    const g = gains(m), reveal = $('reveal').checked, decep = S.mode==='decep', bm = burstMode();
+    const lr = $('lReal'), lf = $('lFake'), lb = $('lBurst'), lc = $('lCoord');
+    $('dmode').hidden = !decep; $('assume').hidden = !bm;
+    lf.hidden = !decep || bm; lb.hidden = !bm;
+    if(bm){
+      const captured = S.on && m.JS >= m.thr, mixed = S.on && !captured && m.JS >= m.lo;
+      lr.classList.add('live'); lr.style.opacity = 1; $('lRealSt').textContent = burst ? '좌표 수신 중' : '수신 중 · 선명';
+      const shown = playing ? lastCoord : (captured ? 'fake' : mixed ? 'mixed' : 'real');
+      lc.textContent = shown==='fake' ? 'CH 23456 23456' : shown==='mixed' ? 'CH 1?3?5 ?2?4?' : 'CH 12345 12345';
+      lc.style.color = (shown==='fake' && reveal) ? 'var(--jam)' : (shown==='mixed' ? 'var(--bad)' : 'var(--text)');
+      lb.classList.toggle('live', burst); lb.classList.toggle('fakeOn', reveal); $('lBurstTag').textContent = reveal ? '재머 (가짜)' : '재머';
+      $('lBurstSt').textContent = !S.on ? 'OFF' : burst ? '송신 중' : captured ? '대기 · 좌표 구간에서 장악' : mixed ? '대기 · 겹쳐 불명확' : '대기 · 묻힘';
+      return;
+    }
+    lc.textContent = 'CH 12345 12345'; lc.style.color = 'var(--text)';
+    const stReal = g.voice > 0.85 ? '수신 중 · 선명' : g.voice > 0.15 ? '수신 중 ·약함' : '들리지 않음';
+    lr.classList.toggle('live', g.voice > 0.15); lr.style.opacity = 0.45 + 0.55*g.voice; $('lRealSt').textContent = stReal;
+    if(decep){
+      const f = Math.min(1, g.fake);
+      const stFake = f > 0.85 ? '수신 중 · 선명' : f > 0.15 ? '수신 중 · 겹침' : '묻힘';
+      lf.classList.toggle('live', f > 0.15); lf.style.opacity = 0.45 + 0.55*f; $('lFakeSt').textContent = stFake;
+      lf.classList.toggle('fakeOn', reveal); $('lFakeTag').textContent = reveal ? '재머 (가짜)' : '통제소';
+    }
+  }
+
+  // 상황도: 수신기를 오른쪽에, 송신기를 왼쪽에 두고 재머는 수신기 기준 거리로 그 사이에 둔다
+  function drawMap(m){
+    const RX = {x:780, y:205};
+    const needR = m.needRj;
+    const k = 1; // 1 px = 1 km → 작은 격자(5 px) = 5 km, 큰 격자(25 px) = 25 km
+    const TX = {x: RX.x - S.rs*k, y: RX.y};
+    const a = S.jang; // 재머 방위 (기본: 송신기 쪽, 선 위로 살짝 띄움; 끌어서 바꿀 수 있음)
+    const JM = {x: RX.x + S.rj*k*Math.cos(a), y: RX.y + S.rj*k*Math.sin(a)};
+    const g = gains(m);
+    const set = (id, attrs) => { const el=$(id); for(const key in attrs) el.setAttribute(key, attrs[key]); };
+    set('gTx', {transform:'translate('+TX.x.toFixed(1)+','+TX.y+')'});
+    set('gRx', {transform:'translate('+RX.x+','+RX.y+')'});
+    set('gJm', {transform:'translate('+JM.x.toFixed(1)+','+JM.y.toFixed(1)+')'});
+    $('gJm').style.opacity = S.on ? 1 : .35;
+    $('gTxSub').textContent = fmtW(S.pt)+' / '+S.g+' dBi';
+    $('gRxSub').textContent = 'Pr '+m.Pr.toFixed(0)+' dBm';
+    $('gJmSub').textContent = fmtW(S.pj)+' / '+S.gj+' dBi';
+    // 신호 경로: 목소리가 살아 있을수록 진하게, 통신 범위 밖이면 점선
+    const inRange = S.rs <= m.Rcomm;
+    set('mSig', {x1:TX.x+14, y1:TX.y-15, x2:RX.x-14, y2:RX.y-15, 'stroke-opacity': inRange ? (0.25+0.75*g.voice).toFixed(2) : 0.25, 'stroke-dasharray': inRange ? '0' : '6 6'});
+    // 통신 가능 범위: 송신기 중심, 수신 감도를 만족하는 최대 거리
+    const cr = m.Rcomm*k;
+    set('mComm', {cx:TX.x.toFixed(1), cy:TX.y, r:cr.toFixed(1)});
+    set('mCommTxt', {x:TX.x.toFixed(1), y: Math.min(348, TX.y + cr + 16)});
+    $('mCommTxt').textContent = '통신 가능 거리 ≤ '+fmtKm(m.Rcomm)+(inRange ? '' : ' (수신기가 밖에 있음)');
+    // 재머 거리 고리: 수신기 중심, 재머가 그 위에 놓인다
+    set('mRjRing', {r:(S.rj*k).toFixed(1)});
+    set('mSigTxt', {x:(TX.x+RX.x)/2, y:RX.y+34});
+    $('mSigTxt').textContent = 'Rs = '+S.rs+' km';
+    // 재밍 경로: J/S가 클수록 굵게
+    const jamLvl = S.on ? (burstMode() ? (burst ? 1 : 0.12) : Math.max(0, Math.min(1, (m.JS+30)/60))) : 0;
+    set('mJam', {x1:JM.x+10, y1:JM.y-14, x2:RX.x-10, y2:RX.y-22, 'stroke-width': (1+5*jamLvl).toFixed(1), 'stroke-opacity': S.on ? (0.35+0.65*jamLvl).toFixed(2) : 0});
+    set('mJamTxt', {x:(JM.x+RX.x)/2, y:(JM.y+RX.y)/2-26});
+    $('mJamTxt').textContent = S.on ? 'Rj = '+S.rj+' km (수신기 기준)'+(burstMode() ? (burst ? ' · 송신 중' : ' · 대기') : '') : 'Rj = '+S.rj+' km';
+    // 재머 효과 반경: 이 안에 재머가 들어오면 J/S가 임계값을 넘는다
+    const rpx = needR*k;
+    set('mNeed', {r: S.on ? rpx.toFixed(1) : 0});
+    const ly = RX.y + rpx + 16;
+    set('mNeedTxt', {x: RX.x, y: ly > 348 ? 348 : ly});
+    $('mNeedTxt').textContent = S.on ? '재머 효과 반경 ≤ '+fmtKm(m.needRj)+(S.rj<=m.needRj ? ' (재머가 안에 있음)' : ' (재머가 밖에 있음)') : '';
+    $('mapTag').textContent = '축척: 작은 격자 1칸 = 5 km, 큰 격자 1칸 = 25 km';
+  }
+
+  // ---------- 이벤트 ----------
+  const bind = (id, fn) => $(id).addEventListener('input', e => { fn(e.target.value); render(); });
+  bind('pt', v => S.pt = Math.pow(10, +v));
+  bind('g',  v => S.g = +v);
+  bind('rs', v => S.rs = +v);
+  bind('bs', v => S.bs = +v);
+  bind('pj', v => S.pj = Math.pow(10, +v));
+  bind('gj', v => S.gj = +v);
+  bind('rj', v => S.rj = +v);
+  bind('bj', v => S.bj = +v);
+  const bindNum = (id, rangeId, max, fn) => $(id).addEventListener('change', e => { const v = Math.max(1, Math.min(max, Math.round(+e.target.value)||1)); fn(v); $(rangeId).value = Math.min(v, +$(rangeId).max); render(); });
+  bindNum('rsN','rs',300, v => S.rs = v);
+  bindNum('rjN','rj',500, v => S.rj = v);
+  function pills(groupId, attr, set){
+    const btns = $(groupId).querySelectorAll('button');
+    btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); set(b.dataset[attr]); render(); }));
+  }
+  pills('band','f', v => S.f = +v);
+  $('band').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.mod = b.dataset.m; render(); }));
+  $('jOff').addEventListener('click', () => { S.on=false; $('jOff').setAttribute('aria-pressed','true'); $('jOn').setAttribute('aria-pressed','false'); render(); });
+  $('jOn').addEventListener('click',  () => { S.on=true;  $('jOn').setAttribute('aria-pressed','true');  $('jOff').setAttribute('aria-pressed','false'); render(); });
+  $('mNoise').addEventListener('click', () => { S.mode='noise'; $('mNoise').setAttribute('aria-pressed','true'); $('mDecep').setAttribute('aria-pressed','false'); render(); if(playing) start(); });
+  $('mDecep').addEventListener('click', () => { S.mode='decep'; $('mDecep').setAttribute('aria-pressed','true'); $('mNoise').setAttribute('aria-pressed','false'); render(); if(playing) start(); });
+  $('dmode').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('dmode').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); S.dmode = b.dataset.d; render(); if(playing) start(); }));
+  $('play').addEventListener('click', start);
+  $('stop').addEventListener('click', stop);
+  $('reveal').addEventListener('change', render);
+  if(hasTTS){ speechSynthesis.onvoiceschanged = () => {}; speechSynthesis.getVoices(); }
+  $('fReal').addEventListener('change', e => loadFile(e.target, b => userReal=b));
+  $('fFake').addEventListener('change', e => loadFile(e.target, b => userFake=b));
+
+  // 상황도에서 재머를 끌면 수신기 기준 거리 Rj가 바뀐다
+  (function(){
+    const svg = document.querySelector('.map'), gj = $('gJm');
+    let dragging = false;
+    const toSvg = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    gj.addEventListener('pointerdown', e => { dragging = true; gj.setPointerCapture(e.pointerId); gj.style.cursor='grabbing'; e.preventDefault(); });
+    gj.addEventListener('pointermove', e => {
+      if(!dragging) return;
+      const p = toSvg(e), dx = p.x - 780, dy = (p.y + 18) - 205;
+      const d = Math.sqrt(dx*dx + dy*dy)/1;
+      S.rj = Math.max(1, Math.min(500, Math.round(d)));
+      S.jang = Math.atan2(dy, dx);
+      $('rj').value = Math.min(S.rj, +$('rj').max);
+      render();
+    });
+    const end = e => { dragging = false; gj.style.cursor='grab'; };
+    gj.addEventListener('pointerup', end); gj.addEventListener('pointercancel', end);
+  })();
+
+  render();
+})();
+</script>
+<!-- 공통블록:시작 (도구/공통블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+/* 수동 테마 전환용. 헤드의 light 미디어 규칙과 같은 명시도라 문서 순서로 이긴다 */
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+  color-scheme:light;
+}
+.ea-pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ea-pbar .ea-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-right:2px}
+.ea-step{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ea-step[aria-current="true"]{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.ea-btn{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.ea-btn:hover,.ea-step:hover{border-color:var(--ok)}
+.ea-grow{flex:1 1 auto}
+.ea-desc{flex:1 0 100%;font-size:12px;line-height:1.55;color:var(--dim);padding-top:1px}
+.ea-desc b{color:var(--text);font-weight:500}
+.ea-help{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;padding:20px;display:none;align-items:center;justify-content:center}
+.ea-help[open]{display:flex}
+.ea-help .ea-box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:22px 24px;max-width:470px;width:100%;max-height:80vh;overflow:auto}
+.ea-help h3{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--text)}
+.ea-help p{margin:0 0 14px;font-size:12px;color:var(--dim)}
+.ea-help dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.ea-help dt{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--jam);white-space:nowrap}
+.ea-help dd{margin:0;color:var(--muted)}
+.ea-help .ea-close{margin-top:18px;width:100%;height:38px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:720px){.ea-pbar{padding:10px 16px}}
+@media print{.ea-pbar,.ea-help{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MOD = "01";
+  var HOME = "index.html";          // 빈 문자열이면 시작 화면 버튼 없음
+  var STEPS = [{"t":"0 · 정상 교신","d":"VHF 150 MHz FM · 10 W · 200 km. <b>재생</b>을 눌러 교신을 들려주고, 오른쪽 수식에서 수신 전력 Pr과 수신 감도 S<sub>min</sub>을 짚습니다.","a":[["k","#band",1],["w","pt",10],["r","g",0],["r","rs",200],["r","bs",25],["w","pj",1],["r","gj",6],["r","rj",150],["r","bj",100],["c","mNoise"],["x","reveal",false],["c","jOff"]]},{"t":"1 · 재머 ON · 1 W / 150 km","d":"켰는데도 그대로 들립니다. J/S ≈ −6 dB로 FM 포획 임계값에 한참 못 미칩니다. <b>켜는 것만으로는 아무 일도 일어나지 않는다</b>가 첫 메시지입니다.","a":[["c","mNoise"],["w","pj",1],["r","gj",6],["r","rj",150],["r","bj",100],["c","jOn"]]},{"t":"2 · 출력 50배","d":"거리는 그대로, 출력만 1 W → 50 W(+17 dB). J/S가 임계값 +6 dB를 넘어 <b>두절</b>. 포획 효과로 교신 대신 재머만 들립니다.","a":[["w","pj",50]]},{"t":"3 · 출력은 1 W, 거리만","d":"출력을 1 W로 되돌리고 거리만 150 → 40 km. <b>결과가 같습니다.</b> J/S를 키우는 길은 출력과 거리 둘뿐이라는 것을 여기서 확인시킵니다.","a":[["w","pj",1],["r","rj",40]]},{"t":"4 · 기만 · 좌표 구간","d":"같은 1 W · 40 km인데 대역폭 손실이 없어 J/S가 더 큽니다. 좌표를 말하는 순간에만 가짜 좌표가 들어갑니다. <b>재생</b> 후 학생에게 “어느 것이 가짜인가”를 묻습니다.","a":[["c","mDecep"],["k","#dmode",0],["w","pj",1],["r","rj",40],["c","jOn"],["x","reveal",false]]},{"t":"5 · 정답 공개","d":"노란색이 재머 송신입니다. 수신자 화면에서는 둘 다 “통제소”로 보입니다 — <b>경고가 없다</b>는 것이 기만의 핵심입니다.","a":[["x","reveal",true]]}];
+  var THEME_KEY = 'ea-jam-theme';
+
+  // ---------- 테마 ----------
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function curTheme(){ return document.documentElement.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('eaTheme');
+    if(b) b.textContent = curTheme()==='dark' ? '밝게' : '어둡게';
+  }
+  function toggleTheme(){
+    var t = curTheme()==='dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  }
+  try{ var saved = localStorage.getItem(THEME_KEY); if(saved) applyTheme(saved); }catch(e){}
+
+  // ---------- 시연 단계: DOM을 조작하고 이벤트를 쏜다 (모듈 내부 상태에 손대지 않는다) ----------
+  var el = function(id){ return document.getElementById(id); };
+  function fire(e, type){ e.dispatchEvent(new Event(type, {bubbles:true})); }
+  function act(a){
+    var k = a[0], t = el(a[1]);
+    if(k === 'c'){ if(t) t.click(); }
+    else if(k === 'r'){ if(t){ t.value = a[2]; fire(t,'input'); } }
+    else if(k === 'w'){ if(t){ t.value = Math.log(a[2])/Math.LN10; fire(t,'input'); } }   // 와트 → 로그 슬라이더
+    else if(k === 'n'){ if(t){ t.value = a[2]; fire(t,'change'); } }
+    else if(k === 'k'){ var bs = document.querySelectorAll(a[1]+' button'); if(bs[a[2]]) bs[a[2]].click(); }
+    else if(k === 'x'){ if(t){ t.checked = !!a[2]; fire(t,'change'); } }
+  }
+  var idx = -1;
+  function goto(i){
+    if(!STEPS.length) return;
+    i = Math.max(0, Math.min(STEPS.length-1, i));
+    idx = i;
+    STEPS[i].a.forEach(act);
+    var bs = document.querySelectorAll('#eaSteps .ea-step');
+    for(var k=0;k<bs.length;k++) bs[k].setAttribute('aria-current', k===i ? 'true' : 'false');
+    var d = el('eaDesc');
+    if(d) d.innerHTML = '<b>' + STEPS[i].t + '</b> — ' + STEPS[i].d;
+  }
+
+  // ---------- 대상 전환 ----------
+  var NAMES = ['통신','GNSS','PPI','SAR'];
+  function targetEl(name){
+    var list = document.querySelectorAll('header .seg a, header .seg button');
+    for(var i=0;i<list.length;i++) if(list[i].textContent.trim() === name) return list[i];
+    return null;
+  }
+  function goTarget(i){
+    var t = targetEl(NAMES[i]);
+    if(t && t.tagName === 'A' && t.getAttribute('href')) location.href = t.getAttribute('href');
+  }
+
+  // ---------- 재머 ON/OFF ----------
+  function toggleJam(){
+    var on = el('jOn'), off = el('jOff');
+    if(!on || !off) return;
+    (on.getAttribute('aria-pressed') === 'true' ? off : on).click();
+  }
+
+  // ---------- 발표 바 ----------
+  var head = document.querySelector('header');
+  if(head){
+    var bar = document.createElement('div');
+    bar.className = 'ea-pbar';
+    var html = '<span class="ea-lbl">시연 단계</span><span id="eaSteps" style="display:flex;flex-wrap:wrap;gap:6px"></span>' +
+      '<span class="ea-grow"></span>' +
+      '<button class="ea-btn" id="eaPrev" title="이전 단계 ( , )" aria-label="이전 단계">◀</button>' +
+      '<button class="ea-btn" id="eaNext" title="다음 단계 ( . )" aria-label="다음 단계">▶</button>' +
+      '<button class="ea-btn" id="eaTheme" title="밝게 / 어둡게 ( T )">어둡게</button>' +
+      '<button class="ea-btn" id="eaHelp" title="단축키 ( ? )">단축키</button>';
+    if(HOME) html += '<a class="ea-btn" href="' + HOME + '">시작 화면</a>';
+    html += '<span class="ea-desc" id="eaDesc">시연 단계 버튼을 누르면 파라미터가 그 장면으로 맞춰집니다. 슬라이더를 직접 만져도 됩니다.</span>';
+    bar.innerHTML = html;
+    head.parentNode.insertBefore(bar, head.nextSibling);
+
+    var sw = el('eaSteps');
+    STEPS.forEach(function(s, i){
+      var b = document.createElement('button');
+      b.className = 'ea-step'; b.type = 'button'; b.textContent = s.t;
+      b.setAttribute('aria-current','false'); b.title = s.d;
+      b.addEventListener('click', function(){ goto(i); });
+      sw.appendChild(b);
+    });
+    el('eaPrev').addEventListener('click', function(){ goto(idx <= 0 ? 0 : idx-1); });
+    el('eaNext').addEventListener('click', function(){ goto(idx+1); });
+    el('eaTheme').addEventListener('click', toggleTheme);
+    el('eaHelp').addEventListener('click', function(){ help(true); });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+
+  // ---------- 단축키 도움말 ----------
+  var hv = document.createElement('div');
+  hv.className = 'ea-help'; hv.id = 'eaHelpBox';
+  hv.innerHTML = '<div class="ea-box" role="dialog" aria-label="단축키"><h3>단축키</h3>' +
+    '<p>입력란에 커서가 있을 때는 동작하지 않습니다.</p><dl>' +
+    '<dt>Space</dt><dd>재머 ON / OFF</dd>' +
+    '<dt>1 / 2</dt><dd>잡음 재밍 / 기만 재밍</dd>' +
+    '<dt>, / .</dt><dd>이전 / 다음 시연 단계</dd>' +
+    '<dt>0</dt><dd>첫 단계로</dd>' +
+    '<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +
+    '<dt>T</dt><dd>밝게 / 어둡게</dd>' +
+    '<dt>? · H</dt><dd>이 도움말</dd>' +
+    '</dl><button class="ea-close" type="button">닫기</button></div>';
+  document.body.appendChild(hv);
+  function help(open){ if(open) hv.setAttribute('open',''); else hv.removeAttribute('open'); }
+  hv.addEventListener('click', function(e){ if(e.target === hv) help(false); });
+  hv.querySelector('.ea-close').addEventListener('click', function(){ help(false); });
+
+  // ---------- 키 ----------
+  document.addEventListener('keydown', function(ev){
+    if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var t = ev.target, tag = t && t.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    var k = ev.key;
+    if(k === 'Escape'){ help(false); return; }
+    if(k === ' '){ if(tag === 'BUTTON' || tag === 'A') return; ev.preventDefault(); toggleJam(); return; }
+    if(k === '1'){ var n = el('mNoise'); if(n) n.click(); return; }
+    if(k === '2'){ var d = el('mDecep'); if(d) d.click(); return; }
+    if(k === ','){ goto(idx <= 0 ? 0 : idx-1); return; }
+    if(k === '.'){ goto(idx+1); return; }
+    if(k === '0'){ goto(0); return; }
+    if(k === 't' || k === 'T'){ toggleTheme(); return; }
+    if(k === '?' || k === '/' || k === 'h' || k === 'H'){ ev.preventDefault(); help(!hv.hasAttribute('open')); return; }
+    var qi = 'qwer'.indexOf(k.toLowerCase());
+    if(qi >= 0){ goTarget(qi); return; }
+  });
+})();
+</script>
+<!-- 공통블록:끝 -->
+</body>
+</html>

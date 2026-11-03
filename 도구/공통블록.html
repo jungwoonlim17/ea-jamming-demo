@@ -1,0 +1,167 @@
+<!-- 공통블록:시작 (도구/공통블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+/* 수동 테마 전환용. 헤드의 light 미디어 규칙과 같은 명시도라 문서 순서로 이긴다 */
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+  color-scheme:light;
+}
+.ea-pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ea-pbar .ea-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-right:2px}
+.ea-step{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ea-step[aria-current="true"]{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.ea-btn{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.ea-btn:hover,.ea-step:hover{border-color:var(--ok)}
+.ea-grow{flex:1 1 auto}
+.ea-desc{flex:1 0 100%;font-size:12px;line-height:1.55;color:var(--dim);padding-top:1px}
+.ea-desc b{color:var(--text);font-weight:500}
+.ea-help{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;padding:20px;display:none;align-items:center;justify-content:center}
+.ea-help[open]{display:flex}
+.ea-help .ea-box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:22px 24px;max-width:470px;width:100%;max-height:80vh;overflow:auto}
+.ea-help h3{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--text)}
+.ea-help p{margin:0 0 14px;font-size:12px;color:var(--dim)}
+.ea-help dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.ea-help dt{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--jam);white-space:nowrap}
+.ea-help dd{margin:0;color:var(--muted)}
+.ea-help .ea-close{margin-top:18px;width:100%;height:38px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:720px){.ea-pbar{padding:10px 16px}}
+@media print{.ea-pbar,.ea-help{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MOD = "__MOD__";
+  var HOME = "__HOME__";          // 빈 문자열이면 시작 화면 버튼 없음
+  var STEPS = __STEPS_JSON__;
+  var THEME_KEY = 'ea-jam-theme';
+
+  // ---------- 테마 ----------
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function curTheme(){ return document.documentElement.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('eaTheme');
+    if(b) b.textContent = curTheme()==='dark' ? '밝게' : '어둡게';
+  }
+  function toggleTheme(){
+    var t = curTheme()==='dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  }
+  try{ var saved = localStorage.getItem(THEME_KEY); if(saved) applyTheme(saved); }catch(e){}
+
+  // ---------- 시연 단계: DOM을 조작하고 이벤트를 쏜다 (모듈 내부 상태에 손대지 않는다) ----------
+  var el = function(id){ return document.getElementById(id); };
+  function fire(e, type){ e.dispatchEvent(new Event(type, {bubbles:true})); }
+  function act(a){
+    var k = a[0], t = el(a[1]);
+    if(k === 'c'){ if(t) t.click(); }
+    else if(k === 'r'){ if(t){ t.value = a[2]; fire(t,'input'); } }
+    else if(k === 'w'){ if(t){ t.value = Math.log(a[2])/Math.LN10; fire(t,'input'); } }   // 와트 → 로그 슬라이더
+    else if(k === 'n'){ if(t){ t.value = a[2]; fire(t,'change'); } }
+    else if(k === 'k'){ var bs = document.querySelectorAll(a[1]+' button'); if(bs[a[2]]) bs[a[2]].click(); }
+    else if(k === 'x'){ if(t){ t.checked = !!a[2]; fire(t,'change'); } }
+  }
+  var idx = -1;
+  function goto(i){
+    if(!STEPS.length) return;
+    i = Math.max(0, Math.min(STEPS.length-1, i));
+    idx = i;
+    STEPS[i].a.forEach(act);
+    var bs = document.querySelectorAll('#eaSteps .ea-step');
+    for(var k=0;k<bs.length;k++) bs[k].setAttribute('aria-current', k===i ? 'true' : 'false');
+    var d = el('eaDesc');
+    if(d) d.innerHTML = '<b>' + STEPS[i].t + '</b> — ' + STEPS[i].d;
+  }
+
+  // ---------- 대상 전환 ----------
+  var NAMES = ['통신','GNSS','PPI','SAR'];
+  function targetEl(name){
+    var list = document.querySelectorAll('header .seg a, header .seg button');
+    for(var i=0;i<list.length;i++) if(list[i].textContent.trim() === name) return list[i];
+    return null;
+  }
+  function goTarget(i){
+    var t = targetEl(NAMES[i]);
+    if(t && t.tagName === 'A' && t.getAttribute('href')) location.href = t.getAttribute('href');
+  }
+
+  // ---------- 재머 ON/OFF ----------
+  function toggleJam(){
+    var on = el('jOn'), off = el('jOff');
+    if(!on || !off) return;
+    (on.getAttribute('aria-pressed') === 'true' ? off : on).click();
+  }
+
+  // ---------- 발표 바 ----------
+  var head = document.querySelector('header');
+  if(head){
+    var bar = document.createElement('div');
+    bar.className = 'ea-pbar';
+    var html = '<span class="ea-lbl">시연 단계</span><span id="eaSteps" style="display:flex;flex-wrap:wrap;gap:6px"></span>' +
+      '<span class="ea-grow"></span>' +
+      '<button class="ea-btn" id="eaPrev" title="이전 단계 ( , )" aria-label="이전 단계">◀</button>' +
+      '<button class="ea-btn" id="eaNext" title="다음 단계 ( . )" aria-label="다음 단계">▶</button>' +
+      '<button class="ea-btn" id="eaTheme" title="밝게 / 어둡게 ( T )">어둡게</button>' +
+      '<button class="ea-btn" id="eaHelp" title="단축키 ( ? )">단축키</button>';
+    if(HOME) html += '<a class="ea-btn" href="' + HOME + '">시작 화면</a>';
+    html += '<span class="ea-desc" id="eaDesc">시연 단계 버튼을 누르면 파라미터가 그 장면으로 맞춰집니다. 슬라이더를 직접 만져도 됩니다.</span>';
+    bar.innerHTML = html;
+    head.parentNode.insertBefore(bar, head.nextSibling);
+
+    var sw = el('eaSteps');
+    STEPS.forEach(function(s, i){
+      var b = document.createElement('button');
+      b.className = 'ea-step'; b.type = 'button'; b.textContent = s.t;
+      b.setAttribute('aria-current','false'); b.title = s.d;
+      b.addEventListener('click', function(){ goto(i); });
+      sw.appendChild(b);
+    });
+    el('eaPrev').addEventListener('click', function(){ goto(idx <= 0 ? 0 : idx-1); });
+    el('eaNext').addEventListener('click', function(){ goto(idx+1); });
+    el('eaTheme').addEventListener('click', toggleTheme);
+    el('eaHelp').addEventListener('click', function(){ help(true); });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+
+  // ---------- 단축키 도움말 ----------
+  var hv = document.createElement('div');
+  hv.className = 'ea-help'; hv.id = 'eaHelpBox';
+  hv.innerHTML = '<div class="ea-box" role="dialog" aria-label="단축키"><h3>단축키</h3>' +
+    '<p>입력란에 커서가 있을 때는 동작하지 않습니다.</p><dl>' +
+    '<dt>Space</dt><dd>재머 ON / OFF</dd>' +
+    '<dt>1 / 2</dt><dd>잡음 재밍 / 기만 재밍</dd>' +
+    '<dt>, / .</dt><dd>이전 / 다음 시연 단계</dd>' +
+    '<dt>0</dt><dd>첫 단계로</dd>' +
+    '<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +
+    '<dt>T</dt><dd>밝게 / 어둡게</dd>' +
+    '<dt>? · H</dt><dd>이 도움말</dd>' +
+    '</dl><button class="ea-close" type="button">닫기</button></div>';
+  document.body.appendChild(hv);
+  function help(open){ if(open) hv.setAttribute('open',''); else hv.removeAttribute('open'); }
+  hv.addEventListener('click', function(e){ if(e.target === hv) help(false); });
+  hv.querySelector('.ea-close').addEventListener('click', function(){ help(false); });
+
+  // ---------- 키 ----------
+  document.addEventListener('keydown', function(ev){
+    if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var t = ev.target, tag = t && t.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    var k = ev.key;
+    if(k === 'Escape'){ help(false); return; }
+    if(k === ' '){ if(tag === 'BUTTON' || tag === 'A') return; ev.preventDefault(); toggleJam(); return; }
+    if(k === '1'){ var n = el('mNoise'); if(n) n.click(); return; }
+    if(k === '2'){ var d = el('mDecep'); if(d) d.click(); return; }
+    if(k === ','){ goto(idx <= 0 ? 0 : idx-1); return; }
+    if(k === '.'){ goto(idx+1); return; }
+    if(k === '0'){ goto(0); return; }
+    if(k === 't' || k === 'T'){ toggleTheme(); return; }
+    if(k === '?' || k === '/' || k === 'h' || k === 'H'){ ev.preventDefault(); help(!hv.hasAttribute('open')); return; }
+    var qi = 'qwer'.indexOf(k.toLowerCase());
+    if(qi >= 0){ goTarget(qi); return; }
+  });
+})();
+</script>
+<!-- 공통블록:끝 -->

@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자전 중 EA의 위험성 — GNSS 재밍 시연</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+    --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+    --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C141D;--panel:#0F1A25;--panel2:#060B10;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;--faint:#6F8295;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.6}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:17px;font-weight:700}
+header .sub{font-size:13px;color:var(--dim)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg .lbl{font-size:13px;color:var(--dim);margin:0 4px 0 8px}
+.seg button,.seg a{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.seg [aria-pressed="true"]{background:var(--ok);color:var(--onsig);border-color:var(--ok);font-weight:700}
+.seg .soon{opacity:.55;cursor:not-allowed}
+.layout{display:flex;flex-wrap:wrap;gap:18px;padding:18px 24px 28px}
+aside,main{min-width:0}
+.params{flex:1 1 280px;max-width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.eqs{flex:1 1 300px;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+main{flex:999 1 420px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0;font-size:14px;font-weight:700;color:var(--dim)}
+.group{font-size:12px;font-weight:700;letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.group.sig{color:var(--sig)}.group.jam{color:var(--jam)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);gap:8px}
+.field .row output{color:var(--text);white-space:nowrap}
+.field .row input[type=number]{width:84px;height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--text);font:inherit;font-size:13px;text-align:right}
+.field .row .unit{display:inline-flex;align-items:center;gap:6px;color:var(--dim)}
+.field .fixed{font-size:12px;color:var(--dim);line-height:1.5}
+input[type=range]{width:100%;accent-color:var(--sig);margin:0}
+.jamr input[type=range]{accent-color:var(--jam)}
+.toggle{display:flex;gap:8px}
+.toggle button{flex:1;height:44px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--jam);color:var(--onsig);border-color:var(--jam);font-weight:700}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap;gap:6px}
+.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.status .big{font-size:34px;font-weight:700;line-height:1.1}
+.status .big.ok{color:var(--ok)}.status .big.warn{color:var(--jam)}.status .big.bad{color:var(--bad)}
+.status .desc{font-size:14px;color:var(--muted);max-width:52ch}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+.svgfit{width:100%;height:auto;display:block;border-radius:8px;background:var(--panel)}
+.svgfit text{font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.svgfit .mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+.eq{padding:12px;background:var(--card);border-radius:8px;font-size:13px;line-height:1.9;overflow-x:auto}
+.eq .k{color:var(--dim);font-size:12px}
+.eq .s{color:var(--sig)}.eq .j{color:var(--jam)}
+.eq .r{font-weight:500}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.res div{padding:10px 12px;background:var(--card);border-radius:8px;display:flex;flex-direction:column;gap:2px}
+.res span:first-child{font-size:11px;color:var(--dim)}
+.res span:last-child{font-size:19px}
+.lesson{margin:auto 0 0;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.6;color:var(--muted)}
+.lesson strong{color:var(--text)}
+footer{padding:14px 24px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.pills{display:flex;gap:6px}
+.pills button{flex:1;height:34px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--sig);color:var(--onsig);border-color:var(--sig);font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>전자전 중 EA의 위험성</h1>
+    <div class="sub">GNSS 재밍·스푸핑 시연 · 링크 방정식 기반</div>
+  </div>
+  <div class="seg" role="group" aria-label="재머와 대상 선택">
+    <span class="lbl">재머</span>
+    <button id="mNoise" aria-pressed="true">잡음</button>
+    <button id="mDecep" aria-pressed="false">기만 (스푸핑)</button>
+    <span class="lbl">대상</span>
+    <a href="https://claude.ai/artifact/6uoBfwWCLGsUpvtGbnhQLq">통신</a>
+    <button aria-pressed="true">GNSS</button>
+    <a href="https://claude.ai/artifact/7aLMDrEKJRRB1rz1Dfu1ci">PPI</a>
+    <a href="https://claude.ai/artifact/31DYoHhwGm9YemREk25rt5">SAR</a>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="params" aria-label="파라미터">
+    <h2>파라미터</h2>
+    <div class="group sig">GNSS 신호 (피해 측)</div>
+    <div class="field">
+      <div class="row"><span>위성 송신</span><output>L1 1575.42 MHz</output></div>
+      <div class="fixed">위성 고도 약 20,200 km · 지상 도달 전력 약 −128.5 dBm (고정값). 어디에 있어도 거의 같습니다.</div>
+    </div>
+    <div class="field">
+      <div class="row"><label for="gr">수신 안테나 이득 G<sub>r</sub></label><output id="oGr">0 dBi (×1.0)</output></div>
+      <input id="gr" type="range" min="-3" max="5" step="1" value="0">
+      <div class="fixed">스마트폰 −3 ~ 0 dBi · 차량·휴대용 수신기 패치 안테나 0 ~ +3 dBi · 항법·측량용 +3 ~ +5 dBi (천정 방향 기준)</div>
+    </div>
+    <div class="field">
+      <div class="row"><span>신호 대역폭 · 처리</span><output>2.046 MHz · C/A</output></div>
+      <div class="fixed">대역확산 코드라 신호가 잡음 아래에 숨어 있고, 수신기는 상관 처리로 꺼냅니다. 추적 유지에 C/N₀ ≥ 28 dB-Hz 필요(고정).</div>
+    </div>
+
+    <div class="group jam">재머 (공격 측)</div>
+    <div class="field jamr">
+      <div class="row"><label for="pj">재머 출력 P<sub>j</sub></label><output id="oPj">1 W</output></div>
+      <input id="pj" type="range" min="-3" max="3" step="0.01" value="0">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="gj">재머 안테나 이득 G<sub>j</sub></label><output id="oGj">0 dBi (×1.0)</output></div>
+      <input id="gj" type="range" min="0" max="15" step="1" value="0">
+    </div>
+    <div class="field jamr">
+      <div class="row"><label for="rj">재머–수신기 거리 R<sub>j</sub></label><span class="unit"><input id="rjN" type="number" min="0.1" max="300" step="0.1" value="15" aria-label="재머와 수신기 거리, km">km</span></div>
+      <input id="rj" type="range" min="0.1" max="100" step="0.1" value="15">
+    </div>
+    <div class="field jamr" id="bjField">
+      <div class="row"><label for="bj">재밍 대역폭 B<sub>j</sub></label><output id="oBj">2 MHz</output></div>
+      <input id="bj" type="range" min="0.1" max="20" step="0.1" value="2">
+    </div>
+    <div class="field jamr" id="spField" hidden>
+      <div class="row"><label for="sp">스푸핑 목표: 끌어낼 거리</label><output id="oSp">1.0 km</output></div>
+      <input id="sp" type="range" min="0.2" max="3" step="0.1" value="1">
+      <div class="fixed">스푸퍼는 위성 신호 복제본을 같은 대역으로 보냅니다. 진짜보다 약 3 dB만 세면 수신기 추적을 가로챕니다.</div>
+    </div>
+  </aside>
+
+  <main>
+    <section class="card">
+      <div class="head"><span>수신기 상태</span><span style="display:flex;gap:8px;align-items:center"><span id="modeTag">잡음 재밍</span></span></div>
+      <div class="toggle" style="max-width:320px">
+        <button id="jOff" aria-pressed="true">재머 OFF</button>
+        <button id="jOn" aria-pressed="false">재머 ON</button>
+      </div>
+      <div class="status">
+        <div class="big ok" id="stBig">정상 측위</div>
+        <div class="desc" id="stDesc">재머가 꺼져 있습니다. 8개 위성을 추적하며 위치 오차는 수 m입니다.</div>
+      </div>
+    </section>
+
+    <div class="twocol">
+      <section class="card">
+        <div class="head"><span>평면도 — 수신기 · 재머</span><span class="mono">격자 1칸 = 1 km · 큰 칸 = 5 km</span></div>
+        <svg class="svgfit" id="plan" viewBox="0 0 450 360" role="img" aria-label="수신기와 재머의 위치, 재머 효과 반경">
+          <defs>
+            <pattern id="g1" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0 L0 0 0 5" fill="none" stroke="var(--line)" stroke-width=".6" stroke-opacity=".7"></path></pattern>
+            <pattern id="g5" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0 L0 0 0 25" fill="none" stroke="var(--line2)" stroke-width="1"></path></pattern>
+            <g id="ant"><line x1="0" y1="0" x2="0" y2="-26" stroke="currentColor" stroke-width="2"></line><path d="M-9 0 L9 0 L0 -26 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path><path d="M-10 -34 A12 12 0 0 1 10 -34" fill="none" stroke="currentColor" stroke-width="1.5"></path><circle cx="0" cy="-29" r="2.2" fill="currentColor"></circle></g>
+            <g id="rx"><circle r="9" fill="none" stroke="currentColor" stroke-width="2"></circle><circle r="3" fill="currentColor"></circle><line x1="0" y1="-9" x2="0" y2="-20" stroke="currentColor" stroke-width="2"></line></g>
+          </defs>
+          <rect width="450" height="360" fill="url(#g1)"></rect>
+          <rect width="450" height="360" fill="url(#g5)"></rect>
+          <circle id="pNeed" cx="225" cy="190" r="0" fill="var(--jam)" fill-opacity=".08" stroke="var(--jam)" stroke-width="1.5" stroke-dasharray="7 6" stroke-opacity=".85"></circle>
+          <text id="pNeedTxt" x="225" y="0" fill="var(--jam)" font-size="11" text-anchor="middle"></text>
+          <circle id="pRing" cx="225" cy="190" r="0" fill="none" stroke="var(--dim)" stroke-width="1" stroke-dasharray="3 5" stroke-opacity=".6"></circle>
+          <line id="pJam" x1="0" y1="0" x2="0" y2="0" stroke="var(--jam)" stroke-width="3" stroke-dasharray="10 6"></line>
+          <text id="pJamTxt" x="0" y="0" fill="var(--jam)" font-size="11" text-anchor="middle" class="mono"></text>
+          <g id="pRx" style="color:var(--ok)" transform="translate(225,190)"><use href="#rx"></use><text y="24" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="700">GNSS 수신기</text></g>
+          <g id="pJm" style="color:var(--jam);cursor:grab"><circle r="30" cy="-14" fill="transparent"></circle><use href="#ant"></use><text y="16" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="700">재머 (끌어서 이동)</text><text id="pJmSub" y="30" fill="var(--dim)" font-size="10" text-anchor="middle" class="mono"></text></g>
+        </svg>
+      </section>
+
+      <section class="card">
+        <div class="head"><span>단면도 — 위성 · 수신기 · 재머 (축척 아님)</span><span class="mono" id="sideTag"></span></div>
+        <svg class="svgfit" id="side" viewBox="0 0 450 360" role="img" aria-label="위성에서 수신기로 오는 신호와 지상 재머의 신호 비교">
+          <defs>
+            <g id="sat"><rect x="-6" y="-5" width="12" height="10" rx="2" fill="currentColor"></rect><rect x="-20" y="-3" width="11" height="6" fill="currentColor" opacity=".7"></rect><rect x="9" y="-3" width="11" height="6" fill="currentColor" opacity=".7"></rect></g>
+          </defs>
+          <rect width="450" height="360" fill="var(--panel)"></rect>
+          <line x1="0" y1="300" x2="450" y2="300" stroke="var(--line2)" stroke-width="2"></line>
+          <text x="440" y="316" fill="var(--dim)" font-size="10" text-anchor="end">지면</text>
+          <g id="satLines"></g>
+          <path id="antLobe" d="" fill="var(--ok)" fill-opacity=".10" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="5 3" stroke-opacity=".8"></path>
+          <text x="300" y="116" fill="var(--ok)" font-size="13" font-weight="700" text-anchor="middle">수신 안테나 이득 패턴</text>
+          <text x="300" y="132" fill="var(--ok)" font-size="10" text-anchor="middle" opacity=".85">천정 쪽 이득 높음 · 지평선 쪽 이득 낮음 → 낮은 앙각 위성이 약하게 들어옴</text>
+          <g id="sats"></g>
+          <text x="10" y="22" fill="var(--dim)" font-size="11">위성은 실제 앙각 위치 · 고도 약 20,200 km (축척 아님)</text>
+          <text id="satPow" x="225" y="150" fill="var(--sig)" font-size="11" text-anchor="middle" class="mono"></text>
+          <line id="sJam" x1="0" y1="0" x2="0" y2="0" stroke="var(--jam)" stroke-width="3" stroke-dasharray="10 6"></line>
+          <text id="sJamTxt" x="0" y="0" fill="var(--jam)" font-size="11" text-anchor="middle" class="mono"></text>
+          <g style="color:var(--ok)" transform="translate(300,300)"><use href="#rx"></use><text y="24" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="700">수신기</text></g>
+          <g id="sJm" style="color:var(--jam)"><use href="#ant"></use><text y="18" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="700">재머</text><text id="sJmSub" y="32" fill="var(--dim)" font-size="10" text-anchor="middle" class="mono"></text></g>
+        </svg>
+      </section>
+    </div>
+
+    <div class="twocol">
+      <section class="card">
+        <div class="head"><span>위성별 C/N₀</span><span class="mono" id="cnTag"></span></div>
+        <svg class="svgfit" id="bars" viewBox="0 0 450 220" role="img" aria-label="위성별 반송파 대 잡음밀도비">
+          <line x1="40" y1="190" x2="440" y2="190" stroke="var(--line2)"></line>
+          <text x="34" y="26" fill="var(--dim)" font-size="10" text-anchor="end" class="mono">50</text>
+          <text x="34" y="194" fill="var(--dim)" font-size="10" text-anchor="end" class="mono">0</text>
+          <text x="12" y="110" fill="var(--dim)" font-size="10" text-anchor="middle" class="mono" transform="rotate(-90 12 110)">dB-Hz</text>
+          <line id="thrLine" x1="40" y1="0" x2="440" y2="0" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="6 4"></line>
+          <text id="thrTxt" x="442" y="0" fill="var(--bad)" font-size="10" text-anchor="end"></text>
+          <g id="barG"></g>
+        </svg>
+      </section>
+
+      <section class="card">
+        <div class="head"><span>측위 결과 (1 px = 10 m)</span><span class="mono" id="posTag"></span></div>
+        <svg class="svgfit" id="pos" viewBox="0 0 450 220" role="img" aria-label="실제 위치와 수신기가 계산한 위치">
+          <defs><pattern id="pg" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0 L0 0 0 25" fill="none" stroke="var(--line)" stroke-width="1"></path></pattern></defs>
+          <rect width="450" height="220" fill="url(#pg)"></rect>
+          <text x="10" y="16" fill="var(--dim)" font-size="10">격자 1칸 = 250 m</text>
+          <circle id="errC" cx="225" cy="110" r="0" fill="var(--bad)" fill-opacity=".10" stroke="var(--bad)" stroke-width="1" stroke-dasharray="4 4"></circle>
+          <line id="spLine" x1="225" y1="110" x2="225" y2="110" stroke="var(--jam)" stroke-width="1" stroke-dasharray="3 3" opacity="0"></line>
+          <g id="spTarget" opacity="0"><circle cx="0" cy="0" r="6" fill="none" stroke="var(--jam)" stroke-width="1.5"></circle><text y="-10" fill="var(--jam)" font-size="10" text-anchor="middle">스푸핑 목표</text></g>
+          <g transform="translate(225,110)" style="color:var(--ok)"><line x1="-8" y1="0" x2="8" y2="0" stroke="currentColor" stroke-width="2"></line><line x1="0" y1="-8" x2="0" y2="8" stroke="currentColor" stroke-width="2"></line><text y="20" fill="var(--ok)" font-size="10" text-anchor="middle">실제 위치</text></g>
+          <g id="trail"></g>
+          <g id="est"><circle r="5" fill="var(--sig)"></circle><text y="-9" fill="var(--sig)" font-size="10" text-anchor="middle">수신기가 계산한 위치</text></g>
+          <text id="noFix" x="225" y="118" fill="var(--bad)" font-size="26" font-weight="700" text-anchor="middle" opacity="0">NO FIX</text>
+        </svg>
+        <svg class="svgfit" id="errPlot" viewBox="0 0 450 100" role="img" aria-label="시간에 따른 위치 오차">
+          <line x1="40" y1="84" x2="440" y2="84" stroke="var(--line2)"></line>
+          <line x1="40" y1="10" x2="40" y2="84" stroke="var(--line2)"></line>
+          <text x="36" y="14" fill="var(--dim)" font-size="9" text-anchor="end" class="mono" id="errTop">3 km</text>
+          <text x="36" y="87" fill="var(--dim)" font-size="9" text-anchor="end" class="mono">0</text>
+          <text x="440" y="97" fill="var(--dim)" font-size="9" text-anchor="end">시간 → (최근 20초) · 세로축 로그</text>
+          <text x="44" y="97" fill="var(--dim)" font-size="9">실제 위치와의 차이</text>
+          <path id="errPath" d="" fill="none" stroke="var(--sig)" stroke-width="1.8"></path>
+          <path id="errFill" d="" fill="var(--sig)" fill-opacity=".12"></path>
+        </svg>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="head"><span>이동 시나리오 — 차량이 자기 위치를 믿고 목표 지점으로 자동 주행 (시간 압축)</span>
+        <span style="display:flex;gap:8px"><button id="scStart" style="height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--ok);background:var(--ok);color:var(--onsig);font:inherit;font-size:13px;font-weight:700;cursor:pointer">시나리오 시작</button><button id="scReset" style="height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer">초기화</button><label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)"><input type="checkbox" id="scReveal" checked> 실제 상황 보이기</label></span>
+      </div>
+      <div class="twocol">
+        <div>
+          <div style="font-size:12px;color:var(--sig);font-weight:700;margin-bottom:6px">항법 화면 — 수신기가 운전자에게 보여주는 것</div>
+          <svg class="svgfit" id="nav" viewBox="0 0 450 260" role="img" aria-label="차량 항법 화면" style="background:#07140F">
+            <defs><pattern id="ng" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0 L0 0 0 25" fill="none" stroke="#1E5A43" stroke-width=".8"></path></pattern></defs>
+            <rect width="450" height="260" fill="url(#ng)"></rect>
+            <rect x="0" y="0" width="450" height="28" fill="#0B1F18"></rect>
+            <text x="10" y="18" fill="#7FE3B6" font-size="11" class="mono" id="navSat">SAT 8/8</text>
+            <text x="120" y="18" fill="#7FE3B6" font-size="11" class="mono" id="navAcc">정확도 양호 (±5 m)</text>
+            <text x="440" y="18" fill="#7FE3B6" font-size="11" class="mono" text-anchor="end" id="navDist">목표까지 —</text>
+            <line id="navLine" x1="225" y1="150" x2="225" y2="150" stroke="#E6B84A" stroke-width="2" stroke-dasharray="6 4"></line>
+            <g id="navWp"><path d="M0 0 L0 -18 L12 -14 L0 -10" fill="#E6B84A"></path><text y="14" fill="#E6B84A" font-size="10" text-anchor="middle">목표</text></g>
+            <g transform="translate(225,150)"><circle r="28" fill="none" stroke="#1E5A43" stroke-width="1"></circle><g id="navCar"><path d="M0 -11 L7 9 L0 5 L-7 9 Z" fill="#7FE3B6"></path></g><text y="42" fill="#7FE3B6" font-size="10" text-anchor="middle">내 위치</text></g>
+            <text id="navAlert" x="225" y="245" fill="#FF8A7A" font-size="14" font-weight="700" text-anchor="middle"></text>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--ok);font-weight:700;margin-bottom:6px">실제 상황 — 위에서 본 진짜 위치 (1 px = 10 m)</div>
+          <svg class="svgfit" id="real" viewBox="0 0 450 260" role="img" aria-label="실제 이동 경로와 수신기가 믿는 경로">
+            <defs><pattern id="rg" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0 L0 0 0 25" fill="none" stroke="var(--line)" stroke-width="1"></path></pattern>
+              <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--bad)" stroke-width="2" stroke-opacity=".5"></line></pattern></defs>
+            <rect width="450" height="260" fill="url(#rg)"></rect>
+            <g id="realHide">
+              <circle id="zone" cx="0" cy="0" r="45" fill="url(#hatch)" stroke="var(--bad)" stroke-width="1.5"></circle>
+              <text id="zoneTxt" x="0" y="0" fill="var(--bad)" font-size="11" font-weight="700" text-anchor="middle">금지구역</text>
+              <path id="trueTrail" d="" fill="none" stroke="var(--ok)" stroke-width="2.5"></path>
+              <g id="realCar"><path d="M0 -11 L7 9 L0 5 L-7 9 Z" fill="var(--ok)"></path></g>
+              <text id="realCarTxt" x="0" y="0" fill="var(--ok)" font-size="10" text-anchor="middle">실제 차량</text>
+            </g>
+            <path id="belTrail" d="" fill="none" stroke="var(--sig)" stroke-width="1.5" stroke-dasharray="5 4"></path>
+            <g id="belCar" opacity=".8"><path d="M0 -11 L7 9 L0 5 L-7 9 Z" fill="none" stroke="var(--sig)" stroke-width="1.5"></path></g>
+            <text id="belCarTxt" x="0" y="0" fill="var(--sig)" font-size="10" text-anchor="middle">수신기가 믿는 위치</text>
+            <g id="realStart"><circle r="4" fill="var(--dim)"></circle><text y="16" fill="var(--dim)" font-size="10" text-anchor="middle">출발</text></g>
+            <g id="realWp"><path d="M0 0 L0 -18 L12 -14 L0 -10" fill="var(--jam)"></path><text y="14" fill="var(--jam)" font-size="10" text-anchor="middle">목표 지점</text></g>
+            <text id="realMsg" x="225" y="248" fill="var(--text)" font-size="12" font-weight="700" text-anchor="middle"></text>
+          </svg>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="eqs" aria-label="수식">
+    <h2>수식</h2>
+    <div>
+      <div class="group sig" style="margin-bottom:8px">위성 신호 (단방향, 거리 고정)</div>
+      <div class="eq mono">
+        <div>C = P<sub>sat</sub> G<sub>r</sub> (위성 거리는 어디서나 거의 같음)</div>
+        <div class="k" id="eqC"></div>
+        <div>N<sub>0</sub> = −174 dBm/Hz + NF 2 dB = −172 dBm/Hz</div>
+        <div class="r">C/N<sub>0</sub> = <span id="cn0Out">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group jam" style="margin-bottom:8px" id="eqJhead">재머 수신 전력 (단방향)</div>
+      <div class="eq mono">
+        <div id="eqJf">P<sub>J</sub> = P<sub>j</sub> G<sub>j</sub> G<sub>r</sub> (λ/4π·1km)² · (1km/R<sub>j</sub>)³</div>
+        <div class="k" id="eqJ"></div>
+        <div class="r">P<sub>J</sub> = <span id="pjOut">—</span></div>
+        <div id="eqJ0row">J<sub>0</sub> = P<sub>J</sub> − 10log(B<sub>j</sub>) = <span id="j0Out">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="group" style="margin-bottom:8px;color:var(--dim)">결과</div>
+      <div class="res mono">
+        <div><span id="r1n">유효 C/N₀ (재머 포함)</span><span id="r1">—</span></div>
+        <div><span id="r2n">추적 임계값</span><span id="r2">28 dB-Hz</span></div>
+        <div><span>추적 위성 수</span><span id="r3">—</span></div>
+        <div><span>위치 오차</span><span id="r4">—</span></div>
+        <div><span>현재 거리에서 필요한 P<sub>j</sub></span><span id="needPj">—</span></div>
+        <div><span>현재 출력으로 효과 거리 R<sub>j</sub> ≤</span><span id="needRj">—</span></div>
+      </div>
+    </div>
+    <p class="lesson" id="lesson"></p>
+  </aside>
+</div>
+
+<footer>
+  <span>모든 제원은 교육용 가상 값이며 실제 장비와 무관합니다. 전파 모델: 1 km까지 자유공간, 그 너머는 지상 전파 손실(R³). 위성 링크는 고정값.</span>
+  <span>시연 버전 v0.2 · GNSS 모듈</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const dB = x => 10*Math.log10(x);
+  const S = { f:1575.42e6, Psat:-128.5, gr:0, NF:2, Bc:2.046e6, thr:28, pj:1, gj:0, rj:15, bj:2, sp:1.0, on:false, mode:'noise', jang:(180-22)*Math.PI/180 };
+  const EL = [78,62,55,47,40,31,22,14]; // 위성 앙각(deg): 낮을수록 신호가 조금 약함
+  const satAdj = el => -(90-el)/90*4;
+  const SATC = ['#7FB8FF','#7FE3B6','#C9A7FF','#FF9ECF','#FFC27A','#8CE0F0','#B5E36B','#FFA98A']; // 위성별 색
+
+  function model(){
+    const lam = 3e8/S.f;
+    const L1 = 20*Math.log10(lam/(4*Math.PI*1000));
+    const fsl = R => L1 - 30*Math.log10(Math.max(R,0.01));
+    const C = S.Psat + S.gr;
+    const N0 = -174 + S.NF;
+    const Cj = dB(S.pj*1000) + S.gj + S.gr + L1;      // PJ at 1 km
+    const PJ = Cj - 30*Math.log10(Math.max(S.rj,0.01));
+    let J0 = -Infinity, N0eff = N0, cn0 = C - N0;
+    if(S.mode==='noise' && S.on){
+      J0 = PJ - dB(S.bj*1e6);
+      N0eff = dB(Math.pow(10,N0/10) + Math.pow(10,J0/10));
+      cn0 = C - N0eff;
+    }
+    const sats = EL.map(el => cn0 + satAdj(el));
+    const tracked = sats.filter(v => v >= S.thr).length;
+    // 스푸핑: 복제 신호가 진짜보다 3 dB 이상 세면 추적을 가로챈다
+    const margin = PJ - (C + 3);
+    const spoof = (S.mode==='decep' && S.on) ? (margin >= 0 ? 'captured' : margin >= -6 ? 'partial' : 'none') : 'none';
+    const fix = tracked >= 4;
+    const meanCn = tracked ? sats.filter(v=>v>=S.thr).reduce((a,b)=>a+b,0)/tracked : 0;
+    // 위치 오차: 정상 약 5 m. C/N0가 임계값에 가까워질수록 의사거리 잡음이 급증하고, 위성이 줄어 배치가 나빠지면(DOP) 더 증폭
+    const dop = tracked>=7 ? 1 : tracked===6 ? 1.5 : tracked===5 ? 2.5 : 4;
+    let err = fix ? Math.min(3000, 5*Math.pow(10,(42-meanCn)/7) * dop) : Infinity;
+    if(spoof==='partial') err = Math.max(err, 150);
+    // 필요 조건
+    let needPj, needRj;
+    if(S.mode==='noise'){
+      const J0max = dB(Math.max(1e-30, Math.pow(10,(C-S.thr)/10) - Math.pow(10,N0/10))); // 이 J0를 넘으면 추적 상실
+      const PJneed = J0max + dB(S.bj*1e6);
+      needPj = S.pj * Math.pow(10,(PJneed-PJ)/10);
+      needRj = Math.pow(10,(Cj-PJneed)/30);
+    } else {
+      const PJneed = C + 3;
+      needPj = S.pj * Math.pow(10,(PJneed-PJ)/10);
+      needRj = Math.pow(10,(Cj-PJneed)/30);
+    }
+    return {lam, L1, C, N0, Cj, PJ, J0, N0eff, cn0, sats, tracked, fix, err, spoof, margin, needPj, needRj};
+  }
+
+  const fmtW = w => w>=1000 ? (w/1000).toFixed(1)+' kW' : w>=10 ? w.toFixed(0)+' W' : w>=1 ? w.toFixed(1)+' W' : w>=0.01 ? (w*1000).toFixed(0)+' mW' : w>=1e-5 ? (w*1000).toFixed(1)+' mW' : (w*1e6).toFixed(1)+' µW';
+  const fmtKm = k => k>=100 ? k.toFixed(0)+' km' : k>=10 ? k.toFixed(1)+' km' : k>=1 ? k.toFixed(2)+' km' : (k*1000).toFixed(0)+' m';
+  const set = (id, attrs) => { const el=$(id); for(const k in attrs) el.setAttribute(k, attrs[k]); };
+
+  // ---------- 화면 ----------
+  let estX=0, estY=0, spoofT=0; // 측위 결과 (m), 스푸핑 진행도
+  function render(){
+    const m = model(), decep = S.mode==='decep';
+    $('oGr').textContent = S.gr+' dBi (×'+Math.pow(10,S.gr/10).toFixed(1)+')';
+    $('oPj').textContent = fmtW(S.pj); $('oGj').textContent = S.gj+' dBi (×'+Math.pow(10,S.gj/10).toFixed(1)+')';
+    $('rjN').value = S.rj; $('oBj').textContent = S.bj.toFixed(1)+' MHz'; $('oSp').textContent = S.sp.toFixed(1)+' km';
+    $('bjField').hidden = decep; $('spField').hidden = !decep;
+    $('modeTag').textContent = decep ? '기만 재밍 (스푸핑)' : '잡음 재밍';
+    $('eqJhead').textContent = decep ? '스푸퍼 수신 전력 (단방향, 같은 대역)' : '재머 수신 전력 (단방향)';
+    $('eqJ0row').hidden = decep;
+
+    // 수식
+    $('eqC').textContent = '= '+S.Psat+' dBm + '+S.gr+' dB = '+m.C.toFixed(1)+' dBm';
+    $('cn0Out').textContent = m.C.toFixed(1)+' − ('+m.N0+') = '+(m.C-m.N0).toFixed(1)+' dB-Hz';
+    $('eqJ').innerHTML = '= <span class="j">'+fmtW(S.pj)+'</span> · <span class="j">'+Math.pow(10,S.gj/10).toFixed(1)+'</span> · '+Math.pow(10,S.gr/10).toFixed(1)+' · ('+m.lam.toFixed(3)+'/4π·1000)² · (1/<span class="j">'+S.rj+'</span>)³';
+    $('pjOut').textContent = S.on ? m.PJ.toFixed(1)+' dBm' : 'OFF';
+    $('j0Out').textContent = (S.on && !decep) ? m.PJ.toFixed(1)+' − '+dB(S.bj*1e6).toFixed(1)+' = '+m.J0.toFixed(1)+' dBm/Hz' : '—';
+    if(decep){
+      $('r1n').textContent = '스푸퍼 − 진짜 신호'; $('r1').textContent = S.on ? (m.PJ-m.C>=0?'+':'')+(m.PJ-m.C).toFixed(1)+' dB' : '—';
+      $('r2n').textContent = '가로채기 임계값'; $('r2').textContent = '+3 dB';
+    } else {
+      $('r1n').textContent = '유효 C/N₀ (재머 포함)'; $('r1').textContent = m.cn0.toFixed(1)+' dB-Hz';
+      $('r2n').textContent = '추적 임계값'; $('r2').textContent = S.thr+' dB-Hz';
+    }
+    $('r3').textContent = m.tracked+' / 8';
+    $('r4').textContent = m.fix ? (m.err>=1000 ? (m.err/1000).toFixed(1)+' km' : m.err.toFixed(0)+' m') : '측위 불가';
+    $('needPj').textContent = fmtW(m.needPj); $('needRj').textContent = fmtKm(m.needRj);
+    $('lesson').innerHTML = decep
+      ? '<strong>스푸핑은 전력이 거의 필요 없습니다.</strong> 위성 신호가 −128 dBm 수준이라 진짜보다 3 dB만 세면 수신기를 가로챕니다. 수신기는 멀쩡히 "측위 중"이지만 위치는 재머가 정한 곳입니다.'
+      : '<strong>통신 모듈과 같은 수식, 다른 결과.</strong> 위성 신호가 극도로 약해서 1 W 재머도 수 km 안에서 모든 위성을 끊습니다. 효과를 내는 길은 역시 출력을 올리거나 거리를 줄이는 것뿐입니다.';
+
+    // 상태
+    const big=$('stBig'), desc=$('stDesc'); big.className='big';
+    if(!S.on){ big.classList.add('ok'); big.textContent='정상 측위'; desc.textContent='재머가 꺼져 있습니다. 8개 위성을 추적하며 위치 오차는 수 m입니다.'; }
+    else if(decep){
+      if(m.spoof==='captured'){ big.classList.add('bad'); big.textContent='측위 중 (가짜)'; desc.textContent='수신기는 정상처럼 측위하지만 위치가 스푸퍼가 정한 곳으로 끌려갑니다. 경고 없이 일어납니다.'; }
+      else if(m.spoof==='partial'){ big.classList.add('warn'); big.textContent='불안정'; desc.textContent='진짜 신호와 복제 신호가 비슷한 세기라 위치가 튑니다. 조금만 더 세지면 가로채기가 완료됩니다.'; }
+      else { big.classList.add('ok'); big.textContent='정상 측위'; desc.textContent='복제 신호가 진짜보다 약해 수신기가 진짜 위성을 유지합니다.'; }
+    } else {
+      if(!m.fix){ big.classList.add('bad'); big.textContent='측위 불가'; desc.textContent='추적 위성이 4개 미만입니다. 재머가 잡음 바닥을 올려 위성 신호가 묻혔습니다.'; }
+      else if(m.tracked<8 || m.err>15){ big.classList.add('warn'); big.textContent='열화'; desc.textContent='낮은 앙각 위성부터 끊기고 위치 오차가 커집니다. 임계값 직전에는 수백 m까지 흔들리다 측위가 끊깁니다.'; }
+      else { big.classList.add('ok'); big.textContent='정상 측위'; desc.textContent='재머 전력이 부족해 C/N₀가 임계값 위에 있습니다.'; }
+    }
+
+    drawPlan(m); drawSide(m); drawBars(m); updatePosTargets(m);
+  }
+
+  function drawPlan(m){
+    const k = 5, RX = {x:225, y:190};
+    const JM = {x: RX.x + S.rj*k*Math.cos(S.jang), y: RX.y + S.rj*k*Math.sin(S.jang)};
+    set('pJm', {transform:'translate('+JM.x.toFixed(1)+','+JM.y.toFixed(1)+')'});
+    $('pJm').style.opacity = S.on ? 1 : .4;
+    $('pJmSub').textContent = fmtW(S.pj)+' / '+S.gj+' dBi';
+    set('pRing', {r:(S.rj*k).toFixed(1)});
+    const lvl = S.on ? Math.max(0.2, Math.min(1, (S.mode==='noise' ? (m.J0 - (m.C - S.thr) + 20)/40 : (m.margin+20)/40))) : 0;
+    set('pJam', {x1:JM.x, y1:JM.y-12, x2:RX.x, y2:RX.y, 'stroke-width':(1+5*lvl).toFixed(1), 'stroke-opacity': S.on ? (0.3+0.7*lvl).toFixed(2) : 0});
+    set('pJamTxt', {x:(JM.x+RX.x)/2, y:(JM.y+RX.y)/2-10});
+    $('pJamTxt').textContent = 'Rj = '+S.rj+' km';
+    const rpx = m.needRj*k;
+    set('pNeed', {r: S.on ? rpx.toFixed(1) : 0});
+    const ly = RX.y + rpx + 14;
+    set('pNeedTxt', {y: Math.min(350, ly)});
+    $('pNeedTxt').textContent = S.on ? (S.mode==='noise' ? '측위 상실 반경 ≤ ' : '가로채기 반경 ≤ ')+fmtKm(m.needRj)+(S.rj<=m.needRj ? ' (재머가 안에 있음)' : ' (재머가 밖에 있음)') : '';
+  }
+
+  function drawSide(m){
+    const RX = {x:300, y:300}, RARC = 235;
+    const sg = $('sats'), lg = $('satLines');
+    // 위성 위치: 수신기 중심 호 위에 실제 앙각대로 (좌우 번갈아)
+    const pos = i => { const el = EL[i]*Math.PI/180, side = (i%2 ? 1 : -1); return {x: RX.x + side*RARC*Math.cos(el), y: RX.y - 20 - RARC*Math.sin(el)}; };
+    if(!sg.childElementCount){
+      EL.forEach((el,i) => {
+        const p = pos(i);
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')'); g.style.color=SATC[i];
+        g.innerHTML = '<use href="#sat"></use><text y="-11" fill="'+SATC[i]+'" font-size="9" text-anchor="middle" class="mono">SV'+(i+1)+' '+el+'°</text><text class="satdb" y="21" fill="var(--dim)" font-size="9" text-anchor="middle" class="mono"></text>';
+        sg.appendChild(g);
+        const l = document.createElementNS('http://www.w3.org/2000/svg','line'); l.setAttribute('x1',p.x); l.setAttribute('y1',p.y); l.setAttribute('x2',RX.x); l.setAttribute('y2',RX.y-20); l.setAttribute('stroke',SATC[i]); l.setAttribute('stroke-width','1.2');
+        lg.appendChild(l);
+      });
+      // 수신 안테나 이득 패턴: 천정 방향으로 길게 뻗고 지평선에서는 거의 0인 전형적 반구 패치 패턴 (r ∝ cos^n(천정각))
+      let d = '';
+      for(let a=0;a<=180;a+=4){ const t=a*Math.PI/180, r = 6 + 150*Math.pow(Math.max(0,Math.sin(t)),2.2); const x = RX.x + r*Math.cos(t), y = RX.y-20 - r*Math.sin(t); d += (a?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; }
+      $('antLobe').setAttribute('d', d+'Z');
+    }
+    m.sats.forEach((v,i) => {
+      const ok = v >= S.thr, cap = m.spoof==='captured';
+      const g = sg.children[i];
+      g.style.color = cap ? 'var(--jam)' : ok ? SATC[i] : 'var(--line2)';
+      g.querySelector('.satdb').textContent = (satAdj(EL[i])).toFixed(1)+' dB';
+      lg.children[i].setAttribute('stroke', cap ? 'var(--jam)' : SATC[i]);
+      lg.children[i].setAttribute('stroke-opacity', ok ? (0.45 + 0.5*(1+satAdj(EL[i])/4)) : 0.12);
+      lg.children[i].setAttribute('stroke-width', ok ? (0.8 + 1.2*(1+satAdj(EL[i])/4)).toFixed(1) : 1);
+    });
+    $('satPow').textContent = '위성 신호 도달 전력 ≈ '+m.C.toFixed(1)+' dBm (천정 기준, 앙각이 낮을수록 최대 −4 dB)'+(m.spoof==='captured' ? ' · 스푸퍼 복제본이 대신 추적됨' : '');
+    $('satPow').setAttribute('y', 160);
+    const jx = Math.max(40, RX.x - Math.min(240, S.rj*2.4));
+    set('sJm', {transform:'translate('+jx.toFixed(1)+','+RX.y+')'});
+    $('sJm').style.opacity = S.on ? 1 : .4;
+    $('sJmSub').textContent = 'Rj = '+S.rj+' km';
+    set('sJam', {x1:jx+10, y1:RX.y-14, x2:RX.x-12, y2:RX.y-16, 'stroke-opacity': S.on ? 0.95 : 0, 'stroke-width': S.on ? 3 : 1});
+    set('sJamTxt', {x:(jx+RX.x)/2, y:RX.y-24});
+    $('sJamTxt').textContent = S.on ? '재머 도달 전력 '+m.PJ.toFixed(1)+' dBm' : '';
+    $('sideTag').textContent = S.on ? '재머 ÷ 위성 = '+(m.PJ-m.C>=0?'+':'')+(m.PJ-m.C).toFixed(0)+' dB' : '';
+  }
+
+  function drawBars(m){
+    const g = $('barG');
+    if(!g.childElementCount){
+      EL.forEach((el,i) => {
+        const x = 52 + i*48;
+        g.innerHTML += '<rect x="'+x+'" y="190" width="30" height="0" rx="3" fill="'+SATC[i]+'" stroke="'+SATC[i]+'" stroke-width="1.5"></rect><text x="'+(x+15)+'" y="205" fill="'+SATC[i]+'" font-size="10" text-anchor="middle" class="mono">SV'+(i+1)+'</text><text x="'+(x+15)+'" y="214" fill="var(--faint)" font-size="9" text-anchor="middle" class="mono">'+el+'°</text>';
+      });
+    }
+    // 세로축: 열잡음 기준 C/N0. 위성 막대는 고정되고, 재머가 잡음 바닥을 올리는 만큼 임계선이 위로 올라간다
+    const y = v => 190 - Math.max(0,Math.min(50,v))/50*164;
+    const rects = g.querySelectorAll('rect');
+    const base = m.C - m.N0;
+    const rise = (S.on && S.mode==='noise') ? (m.N0eff - m.N0) : 0;
+    const thrEff = S.thr + rise;
+    EL.forEach((el,i) => {
+      const v = base + satAdj(el), yy = y(v);
+      rects[i].setAttribute('y', yy); rects[i].setAttribute('height', 190-yy);
+      const lost = v < thrEff, cap = m.spoof==='captured';
+      rects[i].setAttribute('fill', cap ? 'var(--jam)' : SATC[i]);
+      rects[i].setAttribute('fill-opacity', lost ? 0.18 : 1);
+      rects[i].setAttribute('stroke', cap ? 'var(--jam)' : lost ? 'var(--bad)' : SATC[i]);
+      rects[i].setAttribute('stroke-opacity', lost ? 0.7 : 1);
+    });
+    set('thrLine', {y1:y(thrEff), y2:y(thrEff)}); set('thrTxt', {y:y(thrEff)-4});
+    $('thrTxt').textContent = rise > 0.05 ? '임계선 '+thrEff.toFixed(1)+' = 28 + 잡음 상승 '+rise.toFixed(1)+' dB' : '추적 임계 '+S.thr+' dB-Hz';
+    $('cnTag').textContent = rise > 0.05 ? '재머가 잡음 바닥을 +'+rise.toFixed(1)+' dB 올림 → 빨간 점선(임계선) 상승, 흐린 막대 = 추적 상실' : (!S.on ? '재머 OFF — 임계선 28 dB-Hz 고정 (재머 ON을 누르면 출력·거리에 따라 올라감)' : S.mode==='decep' ? '스푸핑 모드 — 잡음 바닥은 그대로, 위성 대신 복제 신호를 추적하는지가 문제' : '재머 ON — 전력이 약해 잡음 바닥 상승이 거의 없음');
+  }
+
+  // 측위 점: 오차 원 안에서 떨리고, 스푸핑이면 목표로 끌려간다
+  let cur = null, frame = 0, trail = [], errHist = [], emaOff = 0;
+  // 이동 시나리오 (단위 m, 원점 = 출발점, 화면 1 px = 10 m)
+  const SC = { origin:{x:60,y:200}, wp:{x:3000,y:-1400}, speed:4, zoneR:450 };
+  const sc = { running:false, done:false, p:{x:0,y:0}, dir:{x:1,y:0}, tt:[], bt:[], msg:'' };
+  const scPx = p => ({x: SC.origin.x + p.x*0.1, y: SC.origin.y + p.y*0.1});
+  function scReset(){ sc.running=false; sc.done=false; sc.p={x:0,y:0}; sc.dir={x:1,y:0}; sc.tt=[]; sc.bt=[]; sc.msg=''; }
+  function updatePosTargets(m){ cur = m; }
+  function animate(){
+    if(cur){
+      const m = cur, px = 0.1; // 1 px = 10 m
+      const spoofOn = m.spoof==='captured';
+      spoofT += spoofOn ? 0.012 : -0.03; spoofT = Math.max(0, Math.min(1, spoofT));
+      const tgx = -S.sp*1000*0.401, tgy = -S.sp*1000*0.916; // 경로에 수직인 방향으로 끌어낸다
+      const errM = m.fix ? Math.min(m.err, 3000) : 0;
+      const jit = m.fix ? (Math.random()-0.5)*errM*0.9 : 0, jit2 = m.fix ? (Math.random()-0.5)*errM*0.9 : 0;
+      estX += ((spoofT*tgx + jit) - estX)*0.25; estY += ((spoofT*tgy + jit2) - estY)*0.25;
+      set('est', {transform:'translate('+(225+estX*px).toFixed(1)+','+(110+estY*px).toFixed(1)+')', opacity: m.fix ? 1 : 0});
+      set('errC', {r: m.fix ? (errM*px).toFixed(1) : 0, cx:(225+ (spoofT*tgx)*px).toFixed(1), cy:(110+(spoofT*tgy)*px).toFixed(1)});
+      $('noFix').setAttribute('opacity', m.fix ? 0 : 1);
+      const decep = S.mode==='decep' && S.on;
+      set('spTarget', {transform:'translate('+(225+tgx*px).toFixed(1)+','+(110+tgy*px).toFixed(1)+')', opacity: decep ? 1 : 0});
+      set('spLine', {x2:(225+tgx*px).toFixed(1), y2:(110+tgy*px).toFixed(1), opacity: decep ? 0.6 : 0});
+      const off = Math.sqrt(estX*estX+estY*estY);
+      // 이동 궤적(최근 40점)과 시간-오차 그래프
+      frame++;
+      if(frame % 4 === 0){
+        trail.push(m.fix ? {x:225+estX*px, y:110+estY*px} : null); if(trail.length>40) trail.shift();
+        const tg = $('trail');
+        if(tg.childElementCount < 40){ for(let i=tg.childElementCount;i<40;i++){ const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('r','2'); c.setAttribute('fill','var(--sig)'); tg.appendChild(c);} }
+        trail.forEach((p,i) => { const c = tg.children[i]; if(!p){ c.setAttribute('opacity',0); return; } c.setAttribute('cx',p.x.toFixed(1)); c.setAttribute('cy',p.y.toFixed(1)); c.setAttribute('opacity',(0.08+0.6*i/40).toFixed(2)); });
+        errHist.push(m.fix ? off : null); if(errHist.length>300) errHist.shift();
+        const ymap = v => 84 - Math.max(0, Math.min(1, (Math.log10(Math.max(v,1))-0)/3.5))*74; // 1 m ~ 3 km 로그
+        let d='', f='', started=false;
+        errHist.forEach((v,i) => { const x = 40 + i/300*400; if(v==null){ started=false; return; } const y = ymap(v); d += (started?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; f += (started?'L':'M'+x.toFixed(1)+' 84 L')+x.toFixed(1)+' '+y.toFixed(1)+' '; started=true; });
+        $('errPath').setAttribute('d', d);
+        $('errPath').setAttribute('stroke', (S.mode==='decep' && S.on && m.spoof==='captured') ? 'var(--jam)' : m.fix ? 'var(--sig)' : 'var(--bad)');
+        emaOff = m.fix ? emaOff*0.9 + off*0.1 : 0;
+        $('posTag').textContent = m.fix ? '평균 차이 ≈ '+(emaOff>=1000 ? (emaOff/1000).toFixed(2)+' km' : emaOff.toFixed(0)+' m') : '측위 불가';
+      }
+      scStep(m);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // 시나리오 한 프레임: 차량은 "믿는 위치"로 목표 방향을 정하고, 실제로는 그 방향으로 움직인다
+  function scStep(m){
+    const bel = {x: sc.p.x + estX, y: sc.p.y + estY};
+    if(sc.running && !sc.done){
+      if(m.fix){ const dx = SC.wp.x - bel.x, dy = SC.wp.y - bel.y, d = Math.hypot(dx,dy); if(d > 1){ sc.dir = {x:dx/d, y:dy/d}; } if(d < 40){ sc.done=true; sc.running=false; } }
+      // 측위 불가면 마지막 방향 유지 (추측항법)
+      if(!sc.done){ sc.p.x += sc.dir.x*SC.speed; sc.p.y += sc.dir.y*SC.speed; }
+      if(frame % 3 === 0){ sc.tt.push({x:sc.p.x,y:sc.p.y}); sc.bt.push(m.fix ? {x:bel.x,y:bel.y} : null); }
+      if(sc.done){
+        const zx = SC.wp.x + 401, zy = SC.wp.y + 916;
+        const inZone = Math.hypot(sc.p.x - zx, sc.p.y - zy) < SC.zoneR;
+        const offWp = Math.hypot(sc.p.x - SC.wp.x, sc.p.y - SC.wp.y);
+        sc.msg = inZone ? '화면에선 목표 도착 — 실제로는 금지구역 안 (목표에서 '+offWp.toFixed(0)+' m 벗어남)' : offWp > 100 ? '화면에선 목표 도착 — 실제는 목표에서 '+offWp.toFixed(0)+' m 벗어남' : '목표 도착 (오차 '+offWp.toFixed(0)+' m)';
+      }
+    }
+    // 실제 상황 화면
+    const zx = SC.wp.x + 401, zy = SC.wp.y + 916, zp = scPx({x:zx,y:zy}), wp = scPx(SC.wp), st = scPx({x:0,y:0}), tp = scPx(sc.p), bp = scPx(bel);
+    set('zone', {cx:zp.x, cy:zp.y, r:SC.zoneR*0.1}); set('zoneTxt', {x:zp.x, y:zp.y+4});
+    set('realWp', {transform:'translate('+wp.x+','+wp.y+')'}); set('realStart', {transform:'translate('+st.x+','+st.y+')'});
+    const ang = Math.atan2(sc.dir.y, sc.dir.x)*180/Math.PI + 90;
+    set('realCar', {transform:'translate('+tp.x.toFixed(1)+','+tp.y.toFixed(1)+') rotate('+ang.toFixed(0)+')'}); set('realCarTxt', {x:tp.x.toFixed(1), y:(tp.y+22).toFixed(1)});
+    set('belCar', {transform:'translate('+bp.x.toFixed(1)+','+bp.y.toFixed(1)+') rotate('+ang.toFixed(0)+')', opacity: m.fix ? .85 : 0}); set('belCarTxt', {x:bp.x.toFixed(1), y:(bp.y-16).toFixed(1), opacity: m.fix ? 1 : 0});
+    $('trueTrail').setAttribute('d', sc.tt.map((p,i)=>{ const q=scPx(p); return (i?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1); }).join(' '));
+    let bd='', started=false; sc.bt.forEach(p => { if(!p){ started=false; return; } const q=scPx(p); bd += (started?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)+' '; started=true; }); $('belTrail').setAttribute('d', bd);
+    $('realHide').style.opacity = $('scReveal').checked ? 1 : 0.06;
+    $('realMsg').textContent = sc.done ? sc.msg : sc.running ? '주행 중… (초록 = 실제 경로, 파랑 점선 = 수신기가 믿는 경로)' : '시나리오 시작을 누르세요. 재머 ON 상태로 주행하면 두 경로가 갈라집니다.';
+    // 항법 화면 (믿는 위치가 항상 중앙)
+    const rel = {x: (SC.wp.x - bel.x)*0.1, y: (SC.wp.y - bel.y)*0.1};
+    const cl = Math.hypot(rel.x, rel.y), sc2 = cl > 110 ? 110/cl : 1; // 화면 밖이면 가장자리에 표시
+    set('navWp', {transform:'translate('+(225+rel.x*sc2).toFixed(1)+','+(150+rel.y*sc2).toFixed(1)+')'});
+    set('navLine', {x2:(225+rel.x*sc2).toFixed(1), y2:(150+rel.y*sc2).toFixed(1)});
+    set('navCar', {transform:'rotate('+ang.toFixed(0)+')'});
+    const dWp = Math.hypot(SC.wp.x-bel.x, SC.wp.y-bel.y);
+    $('navDist').textContent = m.fix ? '목표까지 '+(dWp>=1000 ? (dWp/1000).toFixed(2)+' km' : dWp.toFixed(0)+' m') : '목표까지 —';
+    $('navSat').textContent = 'SAT '+m.tracked+'/8';
+    const noiseOn = S.on && S.mode==='noise';
+    $('navAcc').textContent = !m.fix ? '정확도 —' : (noiseOn && m.err>15) ? '정확도 저하 (±'+(m.err>=1000?(m.err/1000).toFixed(1)+' km':m.err.toFixed(0)+' m')+')' : '정확도 양호 (±5 m)';
+    $('navAlert').textContent = !m.fix ? '⚠ NO FIX — 위성 신호 상실' : (noiseOn && m.tracked<8) ? '⚠ 위성 신호 약함' : '';
+    [$('navSat'),$('navAcc'),$('navDist')].forEach(t => t.setAttribute('fill', !m.fix ? '#FF8A7A' : '#7FE3B6'));
+    $('navCar').firstElementChild.setAttribute('fill', m.fix ? '#7FE3B6' : '#3A4B5C');
+  }
+  const bind = (id, fn) => $(id).addEventListener('input', e => { fn(e.target.value); render(); });
+  bind('gr', v => S.gr = +v);
+  bind('pj', v => S.pj = Math.pow(10, +v));
+  bind('gj', v => S.gj = +v);
+  bind('rj', v => S.rj = +v);
+  bind('bj', v => S.bj = +v);
+  bind('sp', v => S.sp = +v);
+  $('rjN').addEventListener('change', e => { const v = Math.max(0.1, Math.min(300, +e.target.value||0.1)); S.rj = Math.round(v*10)/10; $('rj').value = Math.min(S.rj, +$('rj').max); render(); });
+  $('jOff').addEventListener('click', () => { S.on=false; $('jOff').setAttribute('aria-pressed','true'); $('jOn').setAttribute('aria-pressed','false'); render(); });
+  $('jOn').addEventListener('click',  () => { S.on=true;  $('jOn').setAttribute('aria-pressed','true');  $('jOff').setAttribute('aria-pressed','false'); render(); });
+  $('scStart').addEventListener('click', () => { if(sc.done){ scReset(); } sc.running = true; });
+  $('scReset').addEventListener('click', scReset);
+  $('mNoise').addEventListener('click', () => { S.mode='noise'; $('mNoise').setAttribute('aria-pressed','true'); $('mDecep').setAttribute('aria-pressed','false'); render(); });
+  $('mDecep').addEventListener('click', () => { S.mode='decep'; $('mDecep').setAttribute('aria-pressed','true'); $('mNoise').setAttribute('aria-pressed','false'); render(); });
+  (function(){
+    const svg = $('plan'), gj = $('pJm'); let dragging=false;
+    const toSvg = e => { const p = svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    gj.addEventListener('pointerdown', e => { dragging=true; gj.setPointerCapture(e.pointerId); e.preventDefault(); });
+    gj.addEventListener('pointermove', e => { if(!dragging) return; const p=toSvg(e), dx=p.x-225, dy=(p.y+14)-190; S.rj = Math.max(0.1, Math.min(300, Math.round(Math.sqrt(dx*dx+dy*dy)/5*10)/10)); S.jang=Math.atan2(dy,dx); $('rj').value=Math.min(S.rj,+$('rj').max); render(); });
+    const end = () => { dragging=false; }; gj.addEventListener('pointerup', end); gj.addEventListener('pointercancel', end);
+  })();
+
+  render(); animate();
+})();
+</script>
+<!-- 공통블록:시작 (도구/공통블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+/* 수동 테마 전환용. 헤드의 light 미디어 규칙과 같은 명시도라 문서 순서로 이긴다 */
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--panel2:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;--faint:#6F8295;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;
+  color-scheme:light;
+}
+.ea-pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ea-pbar .ea-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-right:2px}
+.ea-step{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ea-step[aria-current="true"]{background:var(--ok);border-color:var(--ok);color:var(--onsig);font-weight:700}
+.ea-btn{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.ea-btn:hover,.ea-step:hover{border-color:var(--ok)}
+.ea-grow{flex:1 1 auto}
+.ea-desc{flex:1 0 100%;font-size:12px;line-height:1.55;color:var(--dim);padding-top:1px}
+.ea-desc b{color:var(--text);font-weight:500}
+.ea-help{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;padding:20px;display:none;align-items:center;justify-content:center}
+.ea-help[open]{display:flex}
+.ea-help .ea-box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:22px 24px;max-width:470px;width:100%;max-height:80vh;overflow:auto}
+.ea-help h3{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--text)}
+.ea-help p{margin:0 0 14px;font-size:12px;color:var(--dim)}
+.ea-help dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.ea-help dt{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--jam);white-space:nowrap}
+.ea-help dd{margin:0;color:var(--muted)}
+.ea-help .ea-close{margin-top:18px;width:100%;height:38px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:720px){.ea-pbar{padding:10px 16px}}
+@media print{.ea-pbar,.ea-help{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MOD = "02";
+  var HOME = "";          // 빈 문자열이면 시작 화면 버튼 없음
+  var STEPS = [{"t":"0 · 정상 측위","d":"위성 8개 추적, 오차 수 m. 위성 신호가 지상에서 −128.5 dBm밖에 안 된다는 점을 단면도에서 짚고 시작합니다.","a":[["c","mNoise"],["c","jOff"],["r","gr",0],["x","scReveal",true],["c","scReset"]]},{"t":"1 · 재머 1 W / 15 km","d":"막대가 내려가는 게 아니라 <b>임계선이 올라갑니다</b>. 재머가 잡음 바닥을 올린 만큼입니다. 낮은 앙각 위성부터 여유가 사라지고 오차가 수십 m로 커집니다.","a":[["w","pj",1],["r","gj",0],["r","rj",15],["r","bj",2],["c","jOn"]]},{"t":"2 · 8 km → NO FIX","d":"출력은 1 W 그대로, 거리만 15 → 8 km. 위성 8개가 한꺼번에 임계선 아래로 내려가 <b>측위 불가</b>. 통신 모듈과 같은 수식, 훨씬 적은 전력.","a":[["r","rj",8]]},{"t":"3 · 스푸핑 10 mW","d":"잡음 재밍의 1/100 전력. 복제 신호가 진짜보다 3 dB만 세면 추적을 가로챕니다. 수신기 상태는 여전히 <b>“측위 중”</b>입니다.","a":[["c","mDecep"],["w","pj",0.01],["r","rj",15],["r","sp",1],["c","jOn"]]},{"t":"4 · 주행 (실제 상황 가림)","d":"오른쪽을 가린 채 왼쪽 항법 화면만 보여줍니다. SAT 8/8 · 정확도 양호 · 목표까지 거리도 줄어듭니다. 학생에게 <b>“지금 재밍 중인가”</b>를 묻습니다.","a":[["x","scReveal",false],["c","scReset"],["c","scStart"]]},{"t":"5 · 실제 상황 공개","d":"두 경로가 갈라져 차량이 금지구역에 들어가 있습니다. 잡음 재밍이었다면 항법 화면에 NO FIX 경고가 떴을 것이라는 대비로 마무리합니다.","a":[["x","scReveal",true]]}];
+  var THEME_KEY = 'ea-jam-theme';
+
+  // ---------- 테마 ----------
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function curTheme(){ return document.documentElement.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('eaTheme');
+    if(b) b.textContent = curTheme()==='dark' ? '밝게' : '어둡게';
+  }
+  function toggleTheme(){
+    var t = curTheme()==='dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  }
+  try{ var saved = localStorage.getItem(THEME_KEY); if(saved) applyTheme(saved); }catch(e){}
+
+  // ---------- 시연 단계: DOM을 조작하고 이벤트를 쏜다 (모듈 내부 상태에 손대지 않는다) ----------
+  var el = function(id){ return document.getElementById(id); };
+  function fire(e, type){ e.dispatchEvent(new Event(type, {bubbles:true})); }
+  function act(a){
+    var k = a[0], t = el(a[1]);
+    if(k === 'c'){ if(t) t.click(); }
+    else if(k === 'r'){ if(t){ t.value = a[2]; fire(t,'input'); } }
+    else if(k === 'w'){ if(t){ t.value = Math.log(a[2])/Math.LN10; fire(t,'input'); } }   // 와트 → 로그 슬라이더
+    else if(k === 'n'){ if(t){ t.value = a[2]; fire(t,'change'); } }
+    else if(k === 'k'){ var bs = document.querySelectorAll(a[1]+' button'); if(bs[a[2]]) bs[a[2]].click(); }
+    else if(k === 'x'){ if(t){ t.checked = !!a[2]; fire(t,'change'); } }
+  }
+  var idx = -1;
+  function goto(i){
+    if(!STEPS.length) return;
+    i = Math.max(0, Math.min(STEPS.length-1, i));
+    idx = i;
+    STEPS[i].a.forEach(act);
+    var bs = document.querySelectorAll('#eaSteps .ea-step');
+    for(var k=0;k<bs.length;k++) bs[k].setAttribute('aria-current', k===i ? 'true' : 'false');
+    var d = el('eaDesc');
+    if(d) d.innerHTML = '<b>' + STEPS[i].t + '</b> — ' + STEPS[i].d;
+  }
+
+  // ---------- 대상 전환 ----------
+  var NAMES = ['통신','GNSS','PPI','SAR'];
+  function targetEl(name){
+    var list = document.querySelectorAll('header .seg a, header .seg button');
+    for(var i=0;i<list.length;i++) if(list[i].textContent.trim() === name) return list[i];
+    return null;
+  }
+  function goTarget(i){
+    var t = targetEl(NAMES[i]);
+    if(t && t.tagName === 'A' && t.getAttribute('href')) location.href = t.getAttribute('href');
+  }
+
+  // ---------- 재머 ON/OFF ----------
+  function toggleJam(){
+    var on = el('jOn'), off = el('jOff');
+    if(!on || !off) return;
+    (on.getAttribute('aria-pressed') === 'true' ? off : on).click();
+  }
+
+  // ---------- 발표 바 ----------
+  var head = document.querySelector('header');
+  if(head){
+    var bar = document.createElement('div');
+    bar.className = 'ea-pbar';
+    var html = '<span class="ea-lbl">시연 단계</span><span id="eaSteps" style="display:flex;flex-wrap:wrap;gap:6px"></span>' +
+      '<span class="ea-grow"></span>' +
+      '<button class="ea-btn" id="eaPrev" title="이전 단계 ( , )" aria-label="이전 단계">◀</button>' +
+      '<button class="ea-btn" id="eaNext" title="다음 단계 ( . )" aria-label="다음 단계">▶</button>' +
+      '<button class="ea-btn" id="eaTheme" title="밝게 / 어둡게 ( T )">어둡게</button>' +
+      '<button class="ea-btn" id="eaHelp" title="단축키 ( ? )">단축키</button>';
+    if(HOME) html += '<a class="ea-btn" href="' + HOME + '">시작 화면</a>';
+    html += '<span class="ea-desc" id="eaDesc">시연 단계 버튼을 누르면 파라미터가 그 장면으로 맞춰집니다. 슬라이더를 직접 만져도 됩니다.</span>';
+    bar.innerHTML = html;
+    head.parentNode.insertBefore(bar, head.nextSibling);
+
+    var sw = el('eaSteps');
+    STEPS.forEach(function(s, i){
+      var b = document.createElement('button');
+      b.className = 'ea-step'; b.type = 'button'; b.textContent = s.t;
+      b.setAttribute('aria-current','false'); b.title = s.d;
+      b.addEventListener('click', function(){ goto(i); });
+      sw.appendChild(b);
+    });
+    el('eaPrev').addEventListener('click', function(){ goto(idx <= 0 ? 0 : idx-1); });
+    el('eaNext').addEventListener('click', function(){ goto(idx+1); });
+    el('eaTheme').addEventListener('click', toggleTheme);
+    el('eaHelp').addEventListener('click', function(){ help(true); });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+
+  // ---------- 단축키 도움말 ----------
+  var hv = document.createElement('div');
+  hv.className = 'ea-help'; hv.id = 'eaHelpBox';
+  hv.innerHTML = '<div class="ea-box" role="dialog" aria-label="단축키"><h3>단축키</h3>' +
+    '<p>입력란에 커서가 있을 때는 동작하지 않습니다.</p><dl>' +
+    '<dt>Space</dt><dd>재머 ON / OFF</dd>' +
+    '<dt>1 / 2</dt><dd>잡음 재밍 / 기만 재밍</dd>' +
+    '<dt>, / .</dt><dd>이전 / 다음 시연 단계</dd>' +
+    '<dt>0</dt><dd>첫 단계로</dd>' +
+    '<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +
+    '<dt>T</dt><dd>밝게 / 어둡게</dd>' +
+    '<dt>? · H</dt><dd>이 도움말</dd>' +
+    '</dl><button class="ea-close" type="button">닫기</button></div>';
+  document.body.appendChild(hv);
+  function help(open){ if(open) hv.setAttribute('open',''); else hv.removeAttribute('open'); }
+  hv.addEventListener('click', function(e){ if(e.target === hv) help(false); });
+  hv.querySelector('.ea-close').addEventListener('click', function(){ help(false); });
+
+  // ---------- 키 ----------
+  document.addEventListener('keydown', function(ev){
+    if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var t = ev.target, tag = t && t.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+    var k = ev.key;
+    if(k === 'Escape'){ help(false); return; }
+    if(k === ' '){ if(tag === 'BUTTON' || tag === 'A') return; ev.preventDefault(); toggleJam(); return; }
+    if(k === '1'){ var n = el('mNoise'); if(n) n.click(); return; }
+    if(k === '2'){ var d = el('mDecep'); if(d) d.click(); return; }
+    if(k === ','){ goto(idx <= 0 ? 0 : idx-1); return; }
+    if(k === '.'){ goto(idx+1); return; }
+    if(k === '0'){ goto(0); return; }
+    if(k === 't' || k === 'T'){ toggleTheme(); return; }
+    if(k === '?' || k === '/' || k === 'h' || k === 'H'){ ev.preventDefault(); help(!hv.hasAttribute('open')); return; }
+    var qi = 'qwer'.indexOf(k.toLowerCase());
+    if(qi >= 0){ goTarget(qi); return; }
+  });
+})();
+</script>
+<!-- 공통블록:끝 -->
+</body>
+</html>
