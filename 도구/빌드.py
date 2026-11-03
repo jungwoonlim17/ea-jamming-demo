@@ -5,14 +5,16 @@
 하는 일
   1) web/ 의 네 모듈에 공통 발표 도구 블록을 주입한다.
      (마커 <!-- 공통블록:시작 --> ~ <!-- 공통블록:끝 --> 사이를 교체, 없으면 </body> 앞에 삽입)
-  2) 그 결과를 artifact/ 으로 복사하면서
-     상단 "대상" 전환 링크를 claude.ai 아티팩트 URL로 바꾸고 "시작 화면" 버튼을 뺀다.
+  2) web/index.html 에도 PWA 블록을 넣고, 서비스 워커 캐시 버전을 내용 해시로 찍는다.
+  3) 그 결과를 artifact/ 으로 복사하면서
+     상단 "대상" 전환 링크를 claude.ai 아티팩트 URL로 바꾸고 "시작 화면" 버튼과 PWA 블록을 뺀다.
 
 멱등이다. 몇 번 돌려도 같은 결과가 나온다.
 
     python "도구/빌드.py"
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -51,10 +53,12 @@ HOME_ONLINE = ""  # 온라인판에는 시작 화면이 없다
 
 START = "<!-- 공통블록:시작"
 END = "<!-- 공통블록:끝 -->"
-BLOCK_RE = re.compile(
-    re.escape(START) + r".*?" + re.escape(END) + r"\n?",
-    re.DOTALL,
-)
+
+PWA_HEAD_START = "<!-- PWA:head 시작"
+PWA_HEAD_END = "<!-- PWA:head 끝 -->"
+PWA_BODY_START = "<!-- PWA:body 시작"
+PWA_BODY_END = "<!-- PWA:body 끝 -->"
+PWA_SPLIT = "<!--SPLIT-->"
 
 
 def read(p: Path) -> str:
@@ -81,13 +85,53 @@ def render_block(template: str, mod: str, steps: list, home: str) -> str:
     )
 
 
-def inject(html: str, block: str) -> str:
-    """마커가 있으면 교체, 없으면 </body> 앞에 삽입."""
-    if BLOCK_RE.search(html):
-        return BLOCK_RE.sub(lambda _: block + "\n", html, count=1)
-    if "</body>" not in html:
-        raise ValueError("</body> 가 없어 주입할 자리를 찾지 못했습니다")
-    return html.replace("</body>", block + "\n</body>", 1)
+def inject(html: str, block: str, start: str = START, end: str = END, anchor: str = "</body>") -> str:
+    """마커가 있으면 그 사이를 교체, 없으면 anchor 앞에 삽입.
+
+    block 이 빈 문자열이면 기존 블록을 들어낸다 (아티팩트판에서 PWA 를 빼는 데 쓴다).
+    """
+    rx = re.compile(re.escape(start) + r".*?" + re.escape(end) + r"\n?", re.DOTALL)
+    if rx.search(html):
+        return rx.sub(lambda _: (block + "\n") if block else "", html, count=1)
+    if not block:
+        return html
+    if anchor not in html:
+        raise ValueError("%s 가 없어 주입할 자리를 찾지 못했습니다" % anchor)
+    return html.replace(anchor, block + "\n" + anchor, 1)
+
+
+def add_pwa(html: str, head: str, body: str) -> str:
+    """PWA 머리말(manifest 링크 등)과 본문 블록(등록 스크립트·설치 버튼)을 넣는다.
+
+    head/body 가 빈 문자열이면 기존 블록을 들어낸다.
+    본문 블록은 공통블록 다음에 와야 .ea-pbar 를 찾을 수 있으므로 마지막에 주입한다.
+    """
+    html = inject(html, head, PWA_HEAD_START, PWA_HEAD_END, "</head>")
+    return inject(html, body, PWA_BODY_START, PWA_BODY_END, "</body>")
+
+
+def stamp_sw() -> str:
+    """web/ 내용의 해시로 sw.js 의 VERSION 을 다시 써 넣는다.
+
+    내용이 바뀌면 캐시 이름이 바뀌고, 옛 캐시는 서비스 워커 activate 에서 지워진다.
+    해시 대상에서 sw.js 자신은 뺀다 — 그래야 몇 번 돌려도 같은 값이 나온다.
+    """
+    sw = OFF / "sw.js"
+    if not sw.exists():
+        return ""
+    h = hashlib.sha1()
+    for p in sorted(OFF.rglob("*")):
+        if p.is_file() and p.name != "sw.js":
+            h.update(p.relative_to(OFF).as_posix().encode("utf-8"))
+            h.update(p.read_bytes())
+    ver = h.hexdigest()[:8]
+    txt = read(sw)
+    new, n = re.subn(r"const VERSION = '[^']*';", "const VERSION = '%s';" % ver, txt, count=1)
+    if n == 0:
+        print("  경고: sw.js 에서 VERSION 줄을 찾지 못했습니다")
+        return ""
+    stamp_sw.changed = write(sw, new)
+    return ver
 
 
 def to_online(html: str, mod: str) -> str:
@@ -108,6 +152,11 @@ def main() -> int:
     template = read(TOOLS / "공통블록.html").rstrip("\n")
     scen = json.loads(read(TOOLS / "시나리오.json"))
 
+    pwa = read(TOOLS / "pwa블록.html")
+    if PWA_SPLIT not in pwa:
+        raise ValueError("pwa블록.html 에 %s 구분선이 없습니다" % PWA_SPLIT)
+    pwa_head, pwa_body = (s.strip("\n") for s in pwa.split(PWA_SPLIT, 1))
+
     changed = []
     for mod, fname in MODULES.items():
         src = OFF / fname
@@ -122,26 +171,42 @@ def main() -> int:
 
         base = read(src)
 
-        off_html = inject(base, render_block(template, mod, steps, HOME_OFFLINE))
+        off_html = add_pwa(
+            inject(base, render_block(template, mod, steps, HOME_OFFLINE)), pwa_head, pwa_body
+        )
         if write(src, off_html):
-            changed.append("오프라인/" + fname)
+            changed.append("web/" + fname)
 
+        # 아티팩트판은 claude.ai 에 올라가므로 PWA(매니페스트·서비스 워커)가 맞지 않는다 → 들어낸다
         on_html = to_online(
-            inject(base, render_block(template, mod, steps, HOME_ONLINE)), mod
+            add_pwa(inject(base, render_block(template, mod, steps, HOME_ONLINE)), "", ""), mod
         )
         if write(ON / fname, on_html):
-            changed.append("온라인/" + fname)
+            changed.append("artifact/" + fname)
 
         # 치환이 실제로 먹었는지 확인 — 파일명이 남아 있으면 링크가 깨진 것
         leftover = [f for m, f in MODULES.items() if m != mod and ('href="%s"' % f) in on_html]
         if leftover:
-            print("  경고: 온라인판 %s 에 상대 링크가 남았습니다: %s" % (fname, leftover))
+            print("  경고: 아티팩트판 %s 에 상대 링크가 남았습니다: %s" % (fname, leftover))
 
         print("  %s  단계 %d개" % (fname, len(steps)))
 
-    # 시작 페이지는 오프라인 전용이라 그대로 둔다
+    # 시작 페이지: 발표 도구는 없고 PWA 만 넣는다
     home = OFF / HOME_OFFLINE
-    print("\n시작 페이지: %s" % ("있음" if home.exists() else "없음 — web/index.html 을 만들어 주세요"))
+    if home.exists():
+        if write(home, add_pwa(read(home), pwa_head, pwa_body)):
+            changed.append("web/" + HOME_OFFLINE)
+        print("  %s  (PWA 만)" % HOME_OFFLINE)
+    else:
+        print("\n시작 페이지 없음 — web/index.html 을 만들어 주세요")
+
+    # 서비스 워커 캐시 버전 — 반드시 html 을 다 쓴 뒤에
+    stamp_sw.changed = False
+    ver = stamp_sw()
+    if ver:
+        print("\n서비스 워커 캐시: ea-jam-%s%s" % (ver, " (갱신)" if stamp_sw.changed else ""))
+        if stamp_sw.changed:
+            changed.append("web/sw.js")
 
     if changed:
         print("\n바뀐 파일 %d개:" % len(changed))

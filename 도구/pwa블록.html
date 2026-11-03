@@ -1,0 +1,88 @@
+<!-- PWA:head 시작 (도구/pwa블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0C141D">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EA 재밍 시연">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- PWA:head 끝 -->
+<!--SPLIT-->
+<!-- PWA:body 시작 (도구/pwa블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+.ea-install{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--ok);background:var(--ok);color:var(--onsig);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ea-install[hidden]{display:none}
+.ea-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(92vw,460px);background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.65;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+@media print{.ea-install,.ea-toast{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  // 서비스 워커는 https 또는 localhost 에서만 등록된다. file:// 로 열면 이 블록은 조용히 아무것도 하지 않는다.
+  var host = location.hostname;
+  var secure = location.protocol === 'https:' || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  if (!secure) return;
+
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* 등록 실패해도 페이지는 그대로 동작 */ });
+    });
+  }
+
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                  navigator.standalone === true;
+  if (installed) return;
+
+  function toast(msg){
+    var old = document.querySelector('.ea-toast');
+    if (old) old.remove();
+    var t = document.createElement('div');
+    t.className = 'ea-toast'; t.setAttribute('role','status'); t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 7000);
+  }
+
+  // 발표 바가 있으면 그 안에, 없으면(시작 화면) 헤더 오른쪽에 붙인다
+  function mount(btn){
+    var bar = document.querySelector('.ea-pbar');
+    if (bar){
+      var grow = bar.querySelector('.ea-grow');
+      bar.insertBefore(btn, grow ? grow.nextSibling : bar.lastElementChild);
+      return;
+    }
+    var head = document.querySelector('header');
+    var host = head ? (head.lastElementChild && head.lastElementChild.tagName === 'DIV' ? head.lastElementChild : head) : document.body;
+    host.appendChild(btn);
+  }
+
+  var btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'ea-install'; btn.id = 'eaInstall';
+  btn.textContent = '앱 설치'; btn.title = '휴대폰·PC에 앱처럼 설치합니다';
+  btn.hidden = true;
+  var deferred = null;
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e; btn.hidden = false;
+  });
+
+  btn.addEventListener('click', function(){
+    if (deferred){
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred = null; btn.hidden = true; });
+    } else if (isIOS){
+      toast('사파리 아래쪽 공유 버튼(□↑)을 누르고 "홈 화면에 추가"를 고르면 앱으로 설치됩니다.');
+    }
+  });
+
+  window.addEventListener('appinstalled', function(){ btn.hidden = true; });
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ mount(btn); if (isIOS) btn.hidden = false; });
+  } else {
+    mount(btn); if (isIOS) btn.hidden = false;
+  }
+})();
+</script>
+<!-- PWA:body 끝 -->
