@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전자전 재밍의 원리 이해를 위한 교육자료</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0C141D;--panel:#0F1A25;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9;--panel:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+    --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;
+    --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C141D;--panel:#0F1A25;--card:#121D29;--line:#1F2C3A;--line2:#2B3A4A;
+  --text:#E6EDF3;--muted:#B4C2CF;--dim:#8FA2B4;
+  --sig:#7FB8FF;--jam:#E6B84A;--ok:#7FE3B6;--bad:#FF8A7A;--onsig:#0C141D;color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F3F6F9;--panel:#FFFFFF;--card:#FFFFFF;--line:#D8E0E8;--line2:#C3CFDB;
+  --text:#122032;--muted:#3A4B5C;--dim:#5A6B7C;
+  --sig:#1F6FD6;--jam:#B37A00;--ok:#1E9E6A;--bad:#C8382B;--onsig:#FFFFFF;color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:16px;line-height:1.75}
+a{color:inherit}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;
+  padding:16px 28px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px}
+.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.2px}
+.btn{height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);
+  background:var(--panel);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+main{max-width:980px;margin:0 auto;padding:40px 24px 72px}
+.hero h2{margin:0 0 14px;font-size:30px;line-height:1.35;letter-spacing:-.6px}
+.hero p{margin:0 0 14px;color:var(--muted);font-size:17px}
+.hero .lede{font-size:18px;color:var(--text)}
+.sec{margin:46px 0 16px;font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--dim)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;
+  display:flex;flex-direction:column;gap:10px}
+.card h3{margin:0;font-size:20px}
+.card .q{color:var(--muted);margin:0}
+.card ul{margin:0;padding-left:19px;color:var(--muted)}
+.card li{margin:3px 0}
+.go{margin-top:6px;align-self:flex-start;height:40px;padding:0 20px;border-radius:9px;
+  border:1px solid var(--ok);background:var(--ok);color:var(--onsig);
+  font:inherit;font-weight:700;text-decoration:none;display:inline-flex;align-items:center}
+.steps{counter-reset:s;display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.steps li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;
+  background:var(--sig);color:var(--onsig);font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:13px}
+td:first-child{white-space:nowrap;font-weight:700;width:1%}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:22px 28px;color:var(--dim);font-size:13px;
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+@media (max-width:620px){
+  header{padding:14px 16px}
+  main{padding:28px 16px 56px}
+  .hero h2{font-size:25px}
+}
+</style>
+<!-- PWA:head 시작 (도구/pwa블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0C141D">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="재밍 원리">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- PWA:head 끝 -->
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.5" fill="none" stroke="var(--ok)" stroke-width="1.6"></circle>
+      <circle cx="12" cy="12" r="5" fill="none" stroke="var(--ok)" stroke-width="1.1" opacity=".6"></circle>
+      <line x1="12" y1="12" x2="21" y2="5" stroke="var(--ok)" stroke-width="1.6"></line>
+      <circle cx="12" cy="12" r="1.8" fill="var(--ok)"></circle>
+    </svg>
+    <h1>전자전 재밍의 원리 이해</h1>
+  </div>
+  <div>
+    <button class="btn" id="theme" type="button">어둡게</button>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <h2>방해 전파를 쏘면<br>통신은 정말 바로 끊길까?</h2>
+    <p class="lede">직접 손잡이를 움직여 보면서 답을 찾는 교육자료입니다. 설치할 것도, 가입할 것도 없습니다.</p>
+    <p>영화에서는 버튼 하나로 적의 통신이 끊깁니다. 실제로는 그렇지 않습니다.
+      방해 전파(재밍)가 통하려면 <strong>받는 쪽 안테나에 도착한 순간</strong> 재머 소리가 원래 신호보다
+      충분히 커야 합니다. 그래서 같은 재머라도 멀면 아무 일이 없고, 가까우면 통신이 끊깁니다.</p>
+    <p>그리고 재밍에는 두 가지가 있습니다. 하나는 <strong>소리를 덮어 안 들리게</strong> 하는 것,
+      다른 하나는 <strong>멀쩡해 보이는 가짜를 흘려 넣는</strong> 것입니다.
+      앞의 것은 당한 사람이 압니다. 뒤의 것은 모릅니다.</p>
+  </section>
+
+  <h2 class="sec">두 가지를 직접 해 보세요</h2>
+  <div class="cards">
+
+    <section class="card">
+      <h3>무전 통신</h3>
+      <p class="q">재머를 켰는데 왜 교신이 그대로 들릴까?</p>
+      <ul>
+        <li>실제로 소리를 들으면서 재머 출력과 거리를 바꿔 봅니다</li>
+        <li>어느 순간 교신이 뚝 끊기는 지점이 있습니다</li>
+        <li>가짜 좌표를 끼워 넣는 방식도 들어 봅니다</li>
+      </ul>
+      <a class="go" href="01-comms.html">무전 통신 열기</a>
+    </section>
+
+    <section class="card">
+      <h3>위성 항법</h3>
+      <p class="q">내비게이션 화면은 멀쩡한데 차가 엉뚱한 곳에 있다면?</p>
+      <ul>
+        <li>위성 신호가 왜 그렇게 약한지 눈으로 봅니다</li>
+        <li>전구 하나 정도의 전력으로도 위치를 잃게 만들 수 있습니다</li>
+        <li>가짜 위성 신호에 속은 차가 어디로 가는지 따라가 봅니다</li>
+      </ul>
+      <a class="go" href="02-gnss.html">위성 항법 열기</a>
+    </section>
+
+  </div>
+
+  <h2 class="sec">보는 방법</h2>
+  <ol class="steps">
+    <li><div><strong>위쪽의 단계 버튼을 왼쪽부터 눌러 보세요.</strong>
+      화면이 그 장면으로 맞춰지고, 버튼 옆에 무엇을 보면 되는지 설명이 나옵니다.</div></li>
+    <li><div><strong>무전 통신은 소리가 납니다.</strong>
+      <b>재생</b> 버튼을 눌러야 들립니다. 휴대폰이라면 음량을 올리거나 이어폰을 쓰세요.</div></li>
+    <li><div><strong>왼쪽 손잡이를 직접 움직여 보세요.</strong>
+      출력과 거리 두 가지만 바꿔도 결과가 어떻게 뒤집히는지 보입니다.</div></li>
+  </ol>
+
+  <h2 class="sec">나오는 말</h2>
+  <table>
+    <tr><th>말</th><th>뜻</th></tr>
+    <tr><td>재밍 (jamming)</td><td>전파를 일부러 쏘아 상대의 통신·장비를 방해하는 것. 우리말로 '전파 방해'.</td></tr>
+    <tr><td>재머 (jammer)</td><td>그 방해 전파를 쏘는 장비.</td></tr>
+    <tr><td>잡음 재밍</td><td>잡음을 크게 쏘아 상대가 <b>못 듣게</b> 만드는 방식. 당한 쪽이 이상을 알아챕니다.</td></tr>
+    <tr><td>기만 재밍</td><td>진짜처럼 생긴 가짜를 흘려 넣어 <b>잘못 믿게</b> 만드는 방식. 당한 쪽이 모릅니다.</td></tr>
+    <tr><td>출력 (W, 와트)</td><td>전파를 얼마나 세게 쏘는지. 가정용 전구가 대략 10~60 W입니다.</td></tr>
+    <tr><td>dB (데시벨)</td><td>세기의 비를 간단히 적는 단위. 10 dB 차이 = 10배, 20 dB = 100배, 30 dB = 1000배.</td></tr>
+    <tr><td>재밍 대 신호 비 (J/S)</td><td>받는 쪽에 도착한 <b>재머 세기 ÷ 원래 신호 세기</b>. 이 값이 기준을 넘어야 방해가 통합니다.</td></tr>
+    <tr><td>위성 항법 (GNSS)</td><td>위성 신호로 현재 위치를 알아내는 시스템. 미국의 GPS가 그중 하나입니다.</td></tr>
+    <tr><td>스푸핑 (spoofing)</td><td>가짜 위성 신호를 보내 수신기가 엉뚱한 위치를 믿게 만드는 것.</td></tr>
+  </table>
+
+  <h2 class="sec">알아두실 점</h2>
+  <div class="note">
+    <p style="margin:0 0 10px">여기 나오는 숫자는 모두 <strong>교육용으로 만든 가상 값</strong>이며,
+      실제 장비의 성능이나 제원과는 관계가 없습니다. 전파가 퍼져 나가는 과정도 수업에서 설명할 수 있는
+      수준으로 단순하게 계산합니다.</p>
+    <p style="margin:0">이 자료는 재밍이 <strong>왜 통하고 왜 통하지 않는지</strong>를 이해하기 위한 것입니다.
+      실제로 전파를 방해하는 행위는 전파법으로 금지되어 있습니다.</p>
+  </div>
+
+</main>
+
+<footer>
+  <span>모든 제원은 교육용 가상 값이며 실제 장비와 무관합니다.</span>
+  <span>쉬운판 v1.0</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var KEY = 'ea-lite-theme', root = document.documentElement, b = document.getElementById('theme');
+  function sysDark(){ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function cur(){ return root.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+  function label(){ b.textContent = cur() === 'dark' ? '밝게' : '어둡게'; }
+  try{ var s = localStorage.getItem(KEY); if(s) root.setAttribute('data-theme', s); }catch(e){}
+  label();
+  b.addEventListener('click', function(){
+    var t = cur() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', t);
+    try{ localStorage.setItem(KEY, t); }catch(e){}
+    label();
+  });
+})();
+</script>
+
+<!-- PWA:body 시작 (도구/pwa블록.html 에서 생성 — 직접 고치지 말고 도구/빌드.py 실행) -->
+<style>
+.ea-install{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--ok);background:var(--ok);color:var(--onsig);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ea-install[hidden]{display:none}
+.ea-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(92vw,460px);background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.65;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+@media print{.ea-install,.ea-toast{display:none !important}}
+</style>
+<script>
+(function(){
+  'use strict';
+  // 서비스 워커는 https 또는 localhost 에서만 등록된다. file:// 로 열면 이 블록은 조용히 아무것도 하지 않는다.
+  var host = location.hostname;
+  var secure = location.protocol === 'https:' || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  if (!secure) return;
+
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* 등록 실패해도 페이지는 그대로 동작 */ });
+    });
+  }
+
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                  navigator.standalone === true;
+  if (installed) return;
+
+  function toast(msg){
+    var old = document.querySelector('.ea-toast');
+    if (old) old.remove();
+    var t = document.createElement('div');
+    t.className = 'ea-toast'; t.setAttribute('role','status'); t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 7000);
+  }
+
+  // 발표 바가 있으면 그 안에, 없으면(시작 화면) 헤더 오른쪽에 붙인다
+  function mount(btn){
+    var bar = document.querySelector('.ea-pbar');
+    if (bar){
+      var grow = bar.querySelector('.ea-grow');
+      bar.insertBefore(btn, grow ? grow.nextSibling : bar.lastElementChild);
+      return;
+    }
+    var head = document.querySelector('header');
+    var host = head ? (head.lastElementChild && head.lastElementChild.tagName === 'DIV' ? head.lastElementChild : head) : document.body;
+    host.appendChild(btn);
+  }
+
+  var btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'ea-install'; btn.id = 'eaInstall';
+  btn.textContent = '앱 설치'; btn.title = '휴대폰·PC에 앱처럼 설치합니다';
+  btn.hidden = true;
+  var deferred = null;
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e; btn.hidden = false;
+  });
+
+  btn.addEventListener('click', function(){
+    if (deferred){
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred = null; btn.hidden = true; });
+    } else if (isIOS){
+      toast('사파리 아래쪽 공유 버튼(□↑)을 누르고 "홈 화면에 추가"를 고르면 앱으로 설치됩니다.');
+    }
+  });
+
+  window.addEventListener('appinstalled', function(){ btn.hidden = true; });
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ mount(btn); if (isIOS) btn.hidden = false; });
+  } else {
+    mount(btn); if (isIOS) btn.hidden = false;
+  }
+})();
+</script>
+<!-- PWA:body 끝 -->
+</body>
+</html>

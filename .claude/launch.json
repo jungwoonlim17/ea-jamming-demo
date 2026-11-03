@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8713", "--directory", "web"],
       "port": 8713
+    },
+    {
+      "name": "쉬운판 미리보기",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8714", "--directory", "web-lite"],
+      "port": 8714
     }
   ]
 }
