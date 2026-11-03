@@ -6,7 +6,8 @@ web/ 의 통신·GNSS 두 모듈을 가져와
   · 대상 전환을 두 개(무전 통신 · 위성 항법)로 줄이고
   · 약어를 일반인이 읽을 수 있는 말로 풀고
   · 시연 단계 설명을 도구/시나리오_쉬운판.json 의 쉬운 문장으로 갈아끼우고
-  · 오른쪽 수식 패널 아래에 "나오는 말" 풀이를 붙인다.
+  · 오른쪽 수식 패널 아래에 "나오는 말" 풀이를 붙이고
+  · PWA(매니페스트·서비스 워커·설치 버튼)를 들어낸다 — 쉬운판은 웹에서만 동작한다.
 수식과 물리 모델은 손대지 않는다 — 원본과 같은 숫자가 나와야 한다.
 
     python "도구/쉬운판.py"
@@ -14,7 +15,6 @@ web/ 의 통신·GNSS 두 모듈을 가져와
 멱등이다. web/ 를 고치고 도구/빌드.py 를 돌린 뒤 이것을 돌리면 쉬운판이 따라온다.
 """
 
-import hashlib
 import json
 import re
 import shutil
@@ -46,6 +46,46 @@ def one(t, old, new, label, count=1):
     return t.replace(old, new)
 
 
+# ── PWA 들어내기 ─────────────────────────────────────────────────────────
+#
+# 쉬운판은 "그냥 웹페이지"다. 매니페스트·서비스 워커·설치 버튼을 넣지 않는다.
+# 파비콘과 theme-color 만 남긴다 — 이건 앱 설치와 무관한 보통 웹 요소다.
+#
+# 아래 청소 스크립트는 예전에 이 주소를 열어 서비스 워커가 등록된 브라우저를 위한 것이다.
+# 그대로 두면 옛 캐시가 계속 화면을 내줄 수 있다.
+
+HEAD_WEB = """<!-- 쉬운판: 설치용 메타 없이 파비콘만 (도구/쉬운판.py) -->
+<meta name="theme-color" content="#0C141D">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">"""
+
+BODY_WEB = """<!-- 쉬운판: 예전에 등록된 서비스 워커 청소 (도구/쉬운판.py) -->
+<script>
+(function(){
+  'use strict';
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.getRegistrations().then(function(rs){
+    rs.forEach(function(r){ r.unregister(); });
+  }).catch(function(){});
+  if (window.caches && caches.keys) {
+    caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
+  }
+})();
+</script>"""
+
+HEAD_RX = re.compile(r"<!-- PWA:head 시작.*?<!-- PWA:head 끝 -->\n?", re.DOTALL)
+BODY_RX = re.compile(r"<!-- PWA:body 시작.*?<!-- PWA:body 끝 -->\n?", re.DOTALL)
+
+
+def strip_pwa(t, name):
+    t, n1 = HEAD_RX.subn(HEAD_WEB + "\n", t, count=1)
+    t, n2 = BODY_RX.subn(BODY_WEB + "\n", t, count=1)
+    if (n1, n2) != (1, 1):
+        print("  !! %s — PWA 블록을 찾지 못했습니다 (head %d, body %d)" % (name, n1, n2))
+        sys.exit(1)
+    return t
+
+
 # ── 두 모듈에 공통으로 들어가는 바꿈 ──────────────────────────────────────
 def common(t, name):
     t = one(t, "<h1>전자전 중 EA의 위험성</h1>", "<h1>%s</h1>" % TITLE, name + " h1")
@@ -67,9 +107,8 @@ def common(t, name):
     t = one(t, "'<dt>Q W E R</dt><dd>대상 전환 (통신 · GNSS · PPI · SAR)</dd>' +",
             "'<dt>Q W</dt><dd>대상 전환 (무전 통신 · 위성 항법)</dd>' +", name + " 단축키 도움말")
 
-    # 앱 이름
-    t = one(t, '<meta name="apple-mobile-web-app-title" content="EA 재밍 시연">',
-            '<meta name="apple-mobile-web-app-title" content="재밍 원리">', name + " 앱 이름")
+    # PWA 를 들어낸다 — 쉬운판은 웹에서만 동작한다 (설치·오프라인 없음)
+    t = strip_pwa(t, name)
 
     # 푸터 버전
     t = one(t, "시연 버전 v0.2 · ", VER + " · ", name + " 푸터 버전")
@@ -258,87 +297,8 @@ def gnss(t):
     return t
 
 
-MANIFEST = {
-    "name": "전자전 재밍의 원리 이해를 위한 교육자료",
-    "short_name": "재밍 원리",
-    "description": "방해 전파가 왜 통하고 왜 통하지 않는지를 직접 만져 보며 이해하는 교육자료",
-    "lang": "ko",
-    "start_url": "./index.html",
-    "scope": "./",
-    "display": "standalone",
-    "orientation": "any",
-    "background_color": "#0C141D",
-    "theme_color": "#0C141D",
-    "icons": [
-        {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
-        {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
-        {"src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
-    ],
-    "shortcuts": [
-        {"name": "무전 통신", "url": "./01-comms.html"},
-        {"name": "위성 항법", "url": "./02-gnss.html"},
-    ],
-}
-
-SW = """/* 쉬운판 — 서비스 워커. 도구/쉬운판.py 가 만든다. 손으로 고치지 말 것. */
-const VERSION = '__VER__';
-const CACHE = 'ea-lite-' + VERSION;
-
-const ASSETS = [
-  './',
-  './index.html',
-  './01-comms.html',
-  './02-gnss.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-512-maskable.png'
-];
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
-});
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
-});
-
-function put(req, res) {
-  const copy = res.clone();
-  caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-  return res;
-}
-
-self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req).then((res) => put(req, res))
-        .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
-    );
-    return;
-  }
-  if (new URL(req.url).origin === location.origin) {
-    e.respondWith(caches.match(req).then((r) => r || fetch(req).then((res) => put(req, res))));
-    return;
-  }
-  e.respondWith(fetch(req).then((res) => put(req, res)).catch(() => caches.match(req)));
-});
-"""
-
-
-def stamp():
-    h = hashlib.sha1()
-    for p in sorted(OUT.rglob("*")):
-        if p.is_file() and p.name != "sw.js":
-            h.update(p.relative_to(OUT).as_posix().encode("utf-8"))
-            h.update(p.read_bytes())
-    return h.hexdigest()[:8]
+# 예전 판에서 만들던 PWA 파일. 남아 있으면 지운다.
+STALE = ["manifest.json", "sw.js", "icons/icon-512.png", "icons/icon-512-maskable.png"]
 
 
 def main():
@@ -357,24 +317,25 @@ def main():
         print("  %s  단계 %d개" % (fname, len(scen[mod])))
 
     home = (TOOLS / "쉬운판_시작화면.html").read_text(encoding="utf-8")
-    pwa = (TOOLS / "pwa블록.html").read_text(encoding="utf-8")
-    head, body = (s.strip("\n") for s in pwa.split("<!--SPLIT-->", 1))
-    head = head.replace('content="EA 재밍 시연"', 'content="재밍 원리"')
-    home = home.replace("</head>", head + "\n</head>", 1).replace("</body>", body + "\n</body>", 1)
+    home = home.replace("</head>", HEAD_WEB + "\n</head>", 1)
+    home = home.replace("</body>", BODY_WEB + "\n</body>", 1)
     (OUT / "index.html").write_text(home, encoding="utf-8", newline="\n")
     print("  index.html  (시작 화면)")
 
-    (OUT / "manifest.json").write_text(
-        json.dumps(MANIFEST, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-
     icons = OUT / "icons"
     icons.mkdir(exist_ok=True)
-    for p in (SRC / "icons").glob("*.png"):
-        shutil.copyfile(p, icons / p.name)
+    shutil.copyfile(SRC / "icons" / "icon-192.png", icons / "icon-192.png")
 
-    (OUT / "sw.js").write_text(SW.replace("__VER__", stamp()), encoding="utf-8", newline="\n")
-    print("\n서비스 워커 캐시: ea-lite-%s" % stamp())
-    print("쉬운판을 %s 에 만들었습니다." % OUT)
+    gone = []
+    for rel in STALE:
+        p = OUT / rel
+        if p.exists():
+            p.unlink()
+            gone.append(rel)
+    if gone:
+        print("\n지운 PWA 파일: " + ", ".join(gone))
+
+    print("\n쉬운판을 %s 에 만들었습니다 (웹 전용 — 설치·오프라인 없음)." % OUT)
     return 0
 
 
