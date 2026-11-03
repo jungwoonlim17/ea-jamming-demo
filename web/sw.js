@@ -6,7 +6,7 @@
  * 화면(navigate)은 네트워크 우선 — 다시 배포하면 바로 새 내용이 보이고,
  * 인터넷이 없을 때만 캐시에서 꺼낸다. 나머지 파일은 캐시 우선.
  */
-const VERSION = 'b25bea26';
+const VERSION = '2e5ea18c';
 const CACHE = 'ea-jam-' + VERSION;
 
 const ASSETS = [
