@@ -39,6 +39,7 @@ EA JAMMING/
 │   ├─ manifest.json                   ← PWA 앱 정보 (손으로 관리)
 │   ├─ sw.js                           ← 서비스 워커. VERSION 줄만 빌드가 다시 쓴다
 │   └─ icons/                          ← 아이콘 PNG 3개. 도구/아이콘생성.py 가 만든다
+├─ web-lite/                           ← 쉬운판(일반인용) 산출물. 도구/쉬운판.py 가 만든다. 직접 고치지 말 것
 ├─ artifact/                           ← 빌드 산출물(claude.ai 아티팩트용). 직접 고치지 말 것
 ├─ 설계_시안/                          ← 캔버스 아티팩트 원본(.dc.html). 실행용 아님
 ├─ .claude/launch.json                 ← 미리보기용 로컬 서버 설정 (python -m http.server 8713)
@@ -47,7 +48,10 @@ EA JAMMING/
     ├─ 공통블록.html                    ← 네 모듈에 주입되는 발표 도구(테마·단축키·시나리오)
     ├─ pwa블록.html                     ← 다섯 파일에 주입되는 PWA(매니페스트 링크·SW 등록·설치 버튼)
     ├─ 시나리오.json                    ← 모듈별 시연 단계 정의
-    └─ 아이콘생성.py                    ← web/icons/*.png 생성 (Pillow 필요)
+    ├─ 아이콘생성.py                    ← web/icons/*.png 생성 (Pillow 필요)
+    ├─ 쉬운판.py                        ← web/ → web-lite/ 생성 (약어 풀기·두 모듈만·용어 풀이)
+    ├─ 쉬운판_시작화면.html              ← 쉬운판 시작 화면 원본
+    └─ 시나리오_쉬운판.json              ← 쉬운판 시연 단계 (동작은 같고 설명만 쉬운 말)
 ```
 
 `web/`의 파일명이 ASCII인 것은 배포 주소 때문이다. 한글 파일명은 URL에서 퍼센트 인코딩되어
@@ -257,13 +261,14 @@ PWA의 고질적인 "옛 버전이 계속 보임"을 이 구조로 피한다.
 
 | 항목 | 값 |
 | --- | --- |
-| 주소 | https://ea-jamming-demo.vercel.app |
+| 주소 (원판) | https://ea-jamming-demo.vercel.app · Root Directory `web` |
+| 주소 (쉬운판) | https://ea-jamming-basic.vercel.app · Root Directory `web-lite` |
 | 저장소 | `github.com/jungwoonlim17/ea-jamming-demo` (개인 계정 — Hobby 플랜은 개인 저장소만 받는다) |
-| Root Directory | **`web`** ← 비우면 저장소 루트가 올라가 빈 화면이 된다 |
+| 주의 | Root Directory 를 비우면 저장소 루트가 올라가 빈 화면이 된다 |
 | Framework Preset | `Other` (빌드 과정 없음. HTML을 그대로 올린다) |
 | 환경변수 | 없음 (키를 쓰는 기능이 없다) |
 
-`main`에 push하면 Vercel이 자동으로 다시 배포한다. **고친 뒤에는 `python "도구/빌드.py"`를 먼저 돌리고 커밋한다** —
+한 저장소에서 Vercel 프로젝트 두 개가 각각 다른 Root Directory 를 본다. `main`에 push하면 둘 다 자동으로 다시 배포된다. **고친 뒤에는 `python "도구/빌드.py"`를 먼저 돌리고 커밋한다** —
 서비스 워커 캐시 버전이 그대로면 이미 설치한 휴대폰에 옛 파일이 남는다.
 
 ### 빌드
@@ -271,6 +276,18 @@ PWA의 고질적인 "옛 버전이 계속 보임"을 이 구조로 피한다.
 ```bash
 python "도구/빌드.py"
 ```
+
+쉬운판까지 맞추려면 이어서 한 줄 더 돌린다. 이것도 멱등이다.
+
+```bash
+python "도구/쉬운판.py"
+```
+
+쉬운판은 `web/` 의 통신·GNSS 두 모듈을 가져와 제목·대상 전환·약어를 바꾸고, 시연 단계 설명을
+`도구/시나리오_쉬운판.json` 의 쉬운 문장으로 갈아끼우고, 수식 패널 아래에 "나오는 말" 풀이를 붙인다.
+**수식과 물리 모델은 건드리지 않는다** — 단계별 결과가 원판과 같아야 한다
+(통신 정상→정상→두절→두절→장악, 항법 정상 측위→열화→측위 불가→측위 중(가짜)).
+바꿀 문구는 `쉬운판.py` 안의 치환 목록에 모아 두었고, 한 번도 안 맞으면 바로 멈춘다.
 
 하는 일: ① `web/` 네 모듈에 공통블록 + 시나리오를 주입 ② 다섯 파일 모두에 PWA 블록을 주입
 ③ `artifact/` 로 복사하면서 대상 전환 링크를 아티팩트 URL로 바꾸고 "시작 화면" 버튼과 PWA 블록을 제거

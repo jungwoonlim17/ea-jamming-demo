@@ -12,7 +12,16 @@
 
 ## 실행 방법
 
-배포본은 **https://ea-jamming-demo.vercel.app** 에서 바로 열립니다. 휴대폰·PC 모두 같은 주소이고,
+이 자료는 두 판으로 나뉩니다.
+
+| 판 | 대상 | 주소 |
+| --- | --- | --- |
+| **원판** | 학부 3학년 전자전공 | https://ea-jamming-demo.vercel.app |
+| **쉬운판** | 일반인·비전공자 | https://ea-jamming-basic.vercel.app |
+
+쉬운판은 통신과 위성항법 두 가지만 넣고 약어를 모두 풀어 쓴 판입니다. 수식과 물리 모델은 원판과 같아 같은 숫자가 나옵니다.
+
+아래 설명은 원판 기준입니다. 배포본은 **https://ea-jamming-demo.vercel.app** 에서 바로 열립니다. 휴대폰·PC 모두 같은 주소이고,
 한 번 열면 앱으로 설치할 수 있습니다. 아래는 인터넷 없이 로컬 파일로 여는 방법입니다.
 
 1. `web/index.html`을 크롬으로 엽니다 (더블클릭, 인터넷 불필요).
@@ -50,6 +59,7 @@
 
 | 경로 | 내용 |
 | --- | --- |
+| `web-lite/` | **쉬운판 배포 대상.** `도구/쉬운판.py`가 `web/`에서 만듭니다. 직접 고치지 마세요. |
 | `web/` | **원본이자 배포 대상.** 시작 화면 + 네 모듈 + PWA 파일(`manifest.json`, `sw.js`, `icons/`). 같은 폴더에 두고 더블클릭하면 인터넷 없이 동작합니다(글꼴만 기본 글꼴로 대체). |
 | `artifact/` | 빌드 산출물. 상단 대상 전환 링크만 claude.ai 아티팩트 주소를 가리킵니다. **직접 고치지 마세요.** |
 | `도구/` | `빌드.py`(블록 주입 + 아티팩트판 생성), `공통블록.html`(발표 도구), `pwa블록.html`, `시나리오.json`(시연 단계), `아이콘생성.py` |
@@ -66,6 +76,12 @@
 python "도구/빌드.py"
 ```
 
+쉬운판까지 같이 맞추려면 이어서 한 줄 더 돌립니다.
+
+```bash
+python "도구/쉬운판.py"
+```
+
 ---
 
 ## 시연 페이지 (온라인)
@@ -73,6 +89,7 @@ python "도구/빌드.py"
 | 모듈 | 주소 |
 | --- | --- |
 | **배포본 (Vercel) — 발표에 쓰는 주소** | https://ea-jamming-demo.vercel.app |
+| **쉬운판 (일반인용)** | https://ea-jamming-basic.vercel.app |
 | 01 통신 음성 재밍 | https://claude.ai/artifact/6uoBfwWCLGsUpvtGbnhQLq |
 | 02 GNSS 재밍·스푸핑 | https://claude.ai/artifact/1m5DDF53C9qRFgrgAFejro |
 | 03 탐색 레이더(PPI) 재밍 | https://claude.ai/artifact/7aLMDrEKJRRB1rz1Dfu1ci |
@@ -130,6 +147,8 @@ python "도구/빌드.py"
     한 번 연 화면은 인터넷 없이도 열립니다. 캐시 버전은 빌드가 내용 해시로 찍습니다.
 11. **배포 (2026-11-03)** — GitHub 저장소를 Vercel에 연결했습니다 (Root Directory `web`, Preset `Other`,
     환경변수 없음). 주소는 https://ea-jamming-demo.vercel.app 이고, `main`에 push하면 자동으로 다시 배포됩니다.
+12. **쉬운판 (2026-11-03)** — 일반인용 "전자전 재밍의 원리 이해"를 따로 만들었습니다. 통신·위성항법 두 가지,
+    약어를 모두 풀어 쓰고 화면마다 "나오는 말" 풀이를 붙였습니다. 주소는 https://ea-jamming-basic.vercel.app 입니다.
 
 ## 남은 일
 
